@@ -47,7 +47,7 @@ class _JobcardsState extends State<Jobcards> {
     }
   }
 
-  Future<void> getData_jobcard() async {
+   Future<void> getData_jobcard() async {
     String query = 'SELECT * FROM Newjobcard ORDER BY id';
     setState(() {
       isLoading = true;
@@ -61,14 +61,13 @@ class _JobcardsState extends State<Jobcards> {
           List<dynamic> data = json.decode(result);
           setState(() {
             jobcardList = List<Map<String, dynamic>>.from(data);
-            filteredJobcardList=List.from(jobcardList);
+            filteredJobcardList = List.from(jobcardList); // Initialize filtered list
           });
-         
         } else {
           Fluttertoast.showToast(msg: 'No data found');
           setState(() {
             jobcardList = [];
-            filteredJobcardList=[];
+            filteredJobcardList = [];
           });
         }
       } else {
@@ -159,12 +158,14 @@ String query = """
 
     return false;
   }
- void _filterSearchResults() {
+  void _filterSearchResults() {
     String query = _searchController.text.toLowerCase();
     setState(() {
       filteredJobcardList = jobcardList.where((jobcard) {
         return jobcard['customername'].toLowerCase().contains(query) ||
-               jobcard['registerno'].toLowerCase().contains(query);
+               jobcard['id'].toString().toLowerCase().contains(query) ||  // For Jobcard ID
+               jobcard['arivedate'].toString().toLowerCase().contains(query) || // For Date (if you want to search by date)
+               jobcard['registerno'].toLowerCase().contains(query); // For registration number
       }).toList();
     });
   }

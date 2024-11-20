@@ -219,8 +219,7 @@ String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtit
           .toList();
     });
   }
-
-  Future<List<String>> gggetData(String searchValue) async {
+Future<List<String>> gggetData(String searchValue) async {
     String query = 'SELECT VehicleName FROM vehicleMake ';
     List<String> suggestions = [];
 
@@ -233,8 +232,6 @@ String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtit
           for (var item in data) {
             suggestions.add(item['VehicleName']);
           }
-        } else {
-          Fluttertoast.showToast(msg: 'No data found');
         }
       } else {
         Fluttertoast.showToast(msg: 'Database connection failed');
@@ -245,19 +242,24 @@ String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtit
 
     return suggestions;
   }
-
-  void fetchSuggestions(String query) async {
-    if (query.isNotEmpty) {
+  
+   fetchSuggestions(String query) async {
+    // if (query.isNotEmpty) {
       List<String> fetchedSuggestions = await gggetData(query);
       setState(() {
-        _suggestions = fetchedSuggestions;
+       _suggestions = fetchedSuggestions.map((e) => e).toList();
+      //   fetchedSuggestions.firstWhere((element) {
+      // return element.toLowerCase().contains(query.toLowerCase());
+      //   },);
       });
-    } else {
-      setState(() {
-        _suggestions = [];
-      });
-    }
+    // } else {
+    //   setState(() {
+    //     _suggestions = [];
+    //   });
+    // }
+    // return _suggestions;
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -290,7 +292,7 @@ String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtit
               children: [
                 GestureDetector(
                   onTap: () {
-                    
+                    adaPopup();
                   },
                   child: Container(
                     width: 20,
@@ -445,5 +447,90 @@ String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtit
         ],
       ),
     );
+  }
+  adaPopup() {
+    
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Appcolors().Scfold,
+          
+          content: SingleChildScrollView(
+            child: SafeArea(
+              child: Container(
+                height: 350,
+                child: Column(
+                  children: [
+                    Container(
+                          width: 290,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Appcolors().maincolor),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Expanded(
+                            child: EasyAutocomplete(
+                              progressIndicatorBuilder: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              controller: _subtitleController,
+                              suggestions: _suggestions,
+                              // asyncSuggestions: (searchValue) async{
+                              // return  await fetchSuggestions(searchValue);},
+                              // suggestionBuilder: (data) {
+                              //   return Text(data);
+                              // },
+                              onChanged: (value) {
+                               setState(() {
+                                  fetchSuggestions(value);
+                               });
+                              },
+                              onSubmitted: (value) {
+                                final selectedModel = value;
+                                print('Selected value: $value');
+                                // _subtitleController.clear();
+                                
+                              },
+                              decoration: InputDecoration(
+                                border: InputBorder.none
+                              ),
+                            ),
+                          ),
+                        ),
+                    // const SizedBox(height: 15),
+                    // GestureDetector(
+                    //   onTap: () async {
+                        
+                    //   },
+                    //   child: Center(
+                    //     child: Container(
+                    //       width: 155,
+                    //       height: 43,
+                    //       decoration: BoxDecoration(
+                    //         borderRadius: BorderRadius.circular(10),
+                    //         color: Color(0xFF0008B4),
+                    //       ),
+                    //       child: Center(
+                    //         child: Text("Save", style: getFonts(14, Colors.white)),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  @override
+  void dispose(){
+    super.dispose();
+    _subtitleController.clear();
+    _subtitleController.dispose();
   }
 }

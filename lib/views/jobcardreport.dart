@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
 import 'package:sher_mech/utility/font.dart';
+import 'package:sher_mech/views/pdfviewer.dart';
 import 'package:sher_mech/views/vehiclemake.dart';
 
 
@@ -20,7 +21,10 @@ class Jobcardreport extends StatefulWidget {
 
 class _JobcardreportState extends State<Jobcardreport> {
   List<Map<String,dynamic>> reportlist=[];
+    List<Map<String,dynamic>> filter_reportlist=[];
+
   bool isLoading = false;
+  final TextEditingController _searchController = TextEditingController();
 
   DateTime? _fromDate;
   DateTime? _toDate;
@@ -49,7 +53,7 @@ class _JobcardreportState extends State<Jobcardreport> {
   void initState() {
     super.initState();
     connectAndGetData();
-   // _searchController.addListener(_filterSearchResults);
+   _searchController.addListener(_filterSearchResults);
   }
 
   Future<void> connectAndGetData() async {
@@ -90,11 +94,14 @@ class _JobcardreportState extends State<Jobcardreport> {
 
         setState(() {
           reportlist = tempList;
+                    filter_reportlist = List.from(reportlist);
+
         });
       } else {
         Fluttertoast.showToast(msg: 'No data found');
         setState(() {
           reportlist = [];
+          filter_reportlist=[];
         });
       }
     } else {
@@ -129,7 +136,16 @@ class _JobcardreportState extends State<Jobcardreport> {
     await getData_reportcard();
   }
 }
-
+  void _filterSearchResults() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      filter_reportlist = reportlist
+          .where((vehicle) =>
+              vehicle['customername'].toLowerCase().contains(query) ||
+              vehicle['id'].contains(query))
+          .toList();
+    });
+  }
 
 
 
@@ -168,7 +184,7 @@ class _JobcardreportState extends State<Jobcardreport> {
             child: Row(
               children: [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {_filterSearchResults();},
                   icon: const Icon(Icons.search, color: Colors.white),
                 ),
                 IconButton(
@@ -241,7 +257,7 @@ class _JobcardreportState extends State<Jobcardreport> {
                   ),
                   child: IconButton(
                     onPressed: () {
-                     // generateAndSharePDF(context);
+                     // PDFViewerScreen(path: )
                     },
                     icon: const Icon(Icons.download_rounded, color: Colors.white),
                   ),
@@ -272,7 +288,7 @@ class _JobcardreportState extends State<Jobcardreport> {
             ),
             Expanded(
               child: ListView.builder(
-                  itemCount: reportlist.isEmpty ? 0 : reportlist.length,
+                  itemCount: filter_reportlist.length,
                 itemBuilder: (context, index) {
                   
                   int sn=index+1;
