@@ -22,7 +22,7 @@ class Jobcardreport extends StatefulWidget {
 class _JobcardreportState extends State<Jobcardreport> {
   List<Map<String,dynamic>> reportlist=[];
     List<Map<String,dynamic>> filter_reportlist=[];
-
+bool isSearchFieldVisible = false;
   bool isLoading = false;
   final TextEditingController _searchController = TextEditingController();
 
@@ -53,7 +53,7 @@ class _JobcardreportState extends State<Jobcardreport> {
   void initState() {
     super.initState();
     connectAndGetData();
-   _searchController.addListener(_filterSearchResults);
+  //  _searchController.addListener(_filterSearchResults());
   }
 
   Future<void> connectAndGetData() async {
@@ -94,7 +94,7 @@ class _JobcardreportState extends State<Jobcardreport> {
 
         setState(() {
           reportlist = tempList;
-                    filter_reportlist = List.from(reportlist);
+                    // filter_reportlist = List.from(reportlist);
 
         });
       } else {
@@ -136,17 +136,19 @@ class _JobcardreportState extends State<Jobcardreport> {
     await getData_reportcard();
   }
 }
-  void _filterSearchResults() {
-    String query = _searchController.text.toLowerCase();
+ void _filterSearchResults(String query) {
+    //  = _searchController.text.toLowerCase();
     setState(() {
+      
       filter_reportlist = reportlist
-          .where((vehicle) =>
-              vehicle['customername'].toLowerCase().contains(query) ||
-              vehicle['id'].contains(query))
-          .toList();
-    });
-  }
-
+          .where((jobreport) =>
+              jobreport['customername']?.toLowerCase().contains(query) ?? false ||
+              jobreport['id'].toString().toLowerCase().contains(query))
+          .toList(); 
+           reportlist =  filter_reportlist;     
+          }
+    );
+ }
 
 
   @override
@@ -156,9 +158,27 @@ class _JobcardreportState extends State<Jobcardreport> {
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: const Color(0xFF0008B4),
-        title: Center(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 20),
+         title: isSearchFieldVisible
+      ? Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: TextField(
+            controller: _searchController,
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: "Search...",
+              hintStyle: TextStyle(color: Colors.white),
+              border: InputBorder.none,
+            ),
+            autofocus: true, 
+            onChanged: (value) {
+              _filterSearchResults(value);
+            }, 
+            // automatically focus when the field is visible
+          ),
+      )
+      : Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Center(
             child: Text(
               "JobCard Report",
               style: appbarFonts(18, Colors.white),
@@ -184,7 +204,15 @@ class _JobcardreportState extends State<Jobcardreport> {
             child: Row(
               children: [
                 IconButton(
-                  onPressed: () {_filterSearchResults();},
+                  onPressed: () {
+                     setState(() {
+                isSearchFieldVisible = !isSearchFieldVisible; 
+                if (isSearchFieldVisible) {
+                  _searchController.clear(); 
+                  _filterSearchResults('');
+                }
+              });
+                    },
                   icon: const Icon(Icons.search, color: Colors.white),
                 ),
                 IconButton(
@@ -288,7 +316,7 @@ class _JobcardreportState extends State<Jobcardreport> {
             ),
             Expanded(
               child: ListView.builder(
-                  itemCount: filter_reportlist.length,
+                  itemCount: reportlist.length,
                 itemBuilder: (context, index) {
                   
                   int sn=index+1;

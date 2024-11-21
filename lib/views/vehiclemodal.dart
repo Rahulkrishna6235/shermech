@@ -449,8 +449,6 @@ Future<List<String>> gggetData(String searchValue) async {
     );
   }
   adaPopup() {
-    
-
     return showDialog(
       context: context,
       builder: (context) {
@@ -463,6 +461,34 @@ Future<List<String>> gggetData(String searchValue) async {
                 height: 350,
                 child: Column(
                   children: [
+                      Container(
+      width: 290,
+      height: 58,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: TextFormField(
+        controller: _titleController,
+        validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a vehicle model';
+                      }
+                      return null;
+                    }, 
+        decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: Appcolors().scafoldcolor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Appcolors().maincolor),
+                      ),
+                      hintText: "Enter the model",
+                      hintStyle: TextStyle(color: Color(0xFF948C93)),
+                    ),
+        autofocus: true,
+      ),
+    ),
                     Container(
                           width: 290,
                           height: 58,
@@ -484,7 +510,7 @@ Future<List<String>> gggetData(String searchValue) async {
                               // },
                               onChanged: (value) {
                                setState(() {
-                                  fetchSuggestions(value);
+                                 fetchSuggestions(value);
                                });
                               },
                               onSubmitted: (value) {
@@ -499,7 +525,7 @@ Future<List<String>> gggetData(String searchValue) async {
                             ),
                           ),
                         ),
-                    // const SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     // GestureDetector(
                     //   onTap: () async {
                         
@@ -518,6 +544,7 @@ Future<List<String>> gggetData(String searchValue) async {
                     //     ),
                     //   ),
                     // ),
+                  
                   ],
                 ),
               ),

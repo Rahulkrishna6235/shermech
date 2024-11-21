@@ -116,23 +116,23 @@ Future<bool> delete_jobcard(int siNo) async {
 
   Future<bool> update_jobcard(
     String date,String Jobcardno,
-    String Cusname,String Model,String Register,String Remark,int siNo, 
+    String Cusname,String Model,String Register,int siNo, 
     ) async {
     setState(() {
       isLoading = true;
     });
 
 String query = """
-  UPDATE Jobcard 
+  UPDATE NewJobcard 
   SET 
-    date = '$date}',
-    jobcardno = '$Jobcardno',
+    arivedate = '$date}',
+    id = '$Jobcardno',
     customername = '$Cusname',
-    modal = '$Model',
-    registrationno = '$Register',
-    remark = '$Remark'
+    model = '$Model',
+    registerno = '$Register',
+    
   WHERE 
-    ID = $siNo
+    id = $siNo
 """;
 
     try {
@@ -158,6 +158,7 @@ String query = """
 
     return false;
   }
+
   void _filterSearchResults() {
     String query = _searchController.text.toLowerCase();
     setState(() {
@@ -167,6 +168,7 @@ String query = """
                jobcard['arivedate'].toString().toLowerCase().contains(query) || // For Date (if you want to search by date)
                jobcard['registerno'].toLowerCase().contains(query); // For registration number
       }).toList();
+      jobcardList=filteredJobcardList;
     });
   }
 
