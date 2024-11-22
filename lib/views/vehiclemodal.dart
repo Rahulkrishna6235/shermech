@@ -245,9 +245,10 @@ Future<List<String>> gggetData(String searchValue) async {
   
    fetchSuggestions(String query) async {
     // if (query.isNotEmpty) {
-      List<String> fetchedSuggestions = await gggetData(query);
+      List<String> fetchedSuggestions = await  gggetData(query);
       setState(() {
        _suggestions = fetchedSuggestions.map((e) => e).toList();
+       fetchedSuggestions=_suggestions;
       //   fetchedSuggestions.firstWhere((element) {
       // return element.toLowerCase().contains(query.toLowerCase());
       //   },);
@@ -496,32 +497,30 @@ Future<List<String>> gggetData(String searchValue) async {
                             border: Border.all(color: Appcolors().maincolor),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Expanded(
-                            child: EasyAutocomplete(
-                              progressIndicatorBuilder: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              controller: _subtitleController,
-                              suggestions: _suggestions,
-                              // asyncSuggestions: (searchValue) async{
-                              // return  await fetchSuggestions(searchValue);},
-                              // suggestionBuilder: (data) {
-                              //   return Text(data);
-                              // },
-                              onChanged: (value) {
-                               setState(() {
-                                 fetchSuggestions(value);
-                               });
-                              },
-                              onSubmitted: (value) {
-                                final selectedModel = value;
-                                print('Selected value: $value');
-                                // _subtitleController.clear();
-                                
-                              },
-                              decoration: InputDecoration(
-                                border: InputBorder.none
-                              ),
+                          child: EasyAutocomplete(
+                            progressIndicatorBuilder: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                            controller: _subtitleController,
+                            suggestions: _suggestions,
+                            // asyncSuggestions: (searchValue) async{
+                            // return  await fetchSuggestions(searchValue);},
+                            // suggestionBuilder: (data) {
+                            //   return Text(data);
+                            // },
+                            onChanged: (value) {
+                             setState(() {
+                               fetchSuggestions(value);
+                             });
+                            },
+                            onSubmitted: (value) {
+                              final selectedModel = value;
+                              print('Selected value: $value');
+                              // _subtitleController.clear();
+                              
+                            },
+                            decoration: InputDecoration(
+                              border: InputBorder.none
                             ),
                           ),
                         ),

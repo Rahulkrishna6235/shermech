@@ -6,6 +6,7 @@ import 'package:sher_mech/utility/font.dart';
 import 'package:sher_mech/views/Dashboard.dart';
 import 'package:sher_mech/views/Home/jobcards.dart';
 import 'package:sher_mech/views/Home/newjobcard.dart';
+import 'package:sher_mech/views/jobcard_bill.dart';
 import 'package:sher_mech/views/jobcardreport.dart';
 import 'package:sher_mech/views/vehiclemake.dart';
 import 'package:sher_mech/views/vehiclemodal.dart';
@@ -21,27 +22,31 @@ class _MainHomeState extends State<MainHome> {
   var Names = [
     "NEW JOBCARD",
     "JOBCARD LIST",
-    "REPORT & SEARCH",
+    "JOBCARD BILL",   
     "JOB SPARE RATES",
+    "REPORT & SEARCH",
     "CUSTOMERS",
     "SETTINGS",
     "SPARE INVENTORY",
     "ANALYTICS",
     "SMS",
-    "WHATSAPP"
+    "WHATSAPP",
+    "ABOUT"
   ];
 
   var images = [
     "assets/images/access-card (2).png",
     "assets/images/to-do-list (1).png",
-    "assets/images/business-report.png",
+    "assets/images/payment (1).png",
     "assets/images/wrench (1).png",
+    "assets/images/business-report.png",
     "assets/images/team (1).png",
     "assets/images/setting (1).png",
     "assets/images/inventory (2).png",
     "assets/images/dashboard (1).png",
     "assets/images/email.png",
-    "assets/images/whatsapp (2).png"
+    "assets/images/whatsapp (2).png",
+    "assets/images/information.png"
   ];
 
   final List<String> _locations = ['Vehicle Modal', 'Vehicle Make'];
@@ -100,6 +105,8 @@ class _MainHomeState extends State<MainHome> {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => Newjobcard()));
                 } else if (index == 1) {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => Jobcards()));
+                }else if(index==2){
+                   Navigator.push(context, MaterialPageRoute(builder: (_) => JobcardBill()));
                 }
               },
               child: Container(

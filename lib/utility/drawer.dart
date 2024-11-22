@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:sher_mech/utility/font.dart';
 import 'package:sher_mech/views/Home/jobcards.dart';
+import 'package:sher_mech/views/jobcard_bill.dart';
+import 'package:sher_mech/views/jobcard_performa.dart';
 import 'package:sher_mech/views/jobcardreport.dart';
 import 'package:sher_mech/views/vehiclemake.dart';
 import 'package:sher_mech/views/vehiclemodal.dart';
@@ -67,11 +69,31 @@ class AppDrawer extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(left: 9),
-            child: ListTile(
-              title: Text("JOB CARDS", style: DrewerFonts()),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => Jobcards()));
-              },
+            child: ExpansionTile(
+              
+              childrenPadding: EdgeInsets.zero,
+              title: Text("JOB CARD", style: DrewerFonts()),
+              
+              children: [
+                ListTile(
+                  title: Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Text("PERFORMA INVOICE", style: DrewerFonts()),
+                  ),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => Performa_invoice()));
+                  },
+                ),
+                ListTile(
+                  title: Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Text("JOBCARD BILL", style: DrewerFonts()),
+                  ),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => JobcardBill()));
+                  },
+                ),
+              ],
             ),
           ),
           Padding(

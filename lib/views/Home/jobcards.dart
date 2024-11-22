@@ -11,6 +11,7 @@ import 'package:sher_mech/views/Home/newjobcard.dart';
 import 'package:sher_mech/views/vehiclemake.dart';
 
 class Jobcards extends StatefulWidget {
+  
   const Jobcards({super.key});
 
   @override
@@ -61,7 +62,7 @@ class _JobcardsState extends State<Jobcards> {
           List<dynamic> data = json.decode(result);
           setState(() {
             jobcardList = List<Map<String, dynamic>>.from(data);
-            filteredJobcardList = List.from(jobcardList); // Initialize filtered list
+            filteredJobcardList = List.from(jobcardList); 
           });
         } else {
           Fluttertoast.showToast(msg: 'No data found');
@@ -164,9 +165,9 @@ String query = """
     setState(() {
       filteredJobcardList = jobcardList.where((jobcard) {
         return jobcard['customername'].toLowerCase().contains(query) ||
-               jobcard['id'].toString().toLowerCase().contains(query) ||  // For Jobcard ID
-               jobcard['arivedate'].toString().toLowerCase().contains(query) || // For Date (if you want to search by date)
-               jobcard['registerno'].toLowerCase().contains(query); // For registration number
+               jobcard['id'].toString().toLowerCase().contains(query) || 
+               jobcard['arivedate'].toString().toLowerCase().contains(query) || 
+               jobcard['registerno'].toLowerCase().contains(query); 
       }).toList();
       jobcardList=filteredJobcardList;
     });

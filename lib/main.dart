@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sher_mech/views/Dashboard.dart';
 import 'package:sher_mech/views/Home/mainHome.dart';
 
 
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const MainHome(),
+      home: const Dashboard(),
     );
   }
 }
