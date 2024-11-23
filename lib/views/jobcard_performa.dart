@@ -1,9 +1,15 @@
+import 'dart:convert';
+
+import 'package:easy_autocomplete/easy_autocomplete.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:sher_mech/utility/colorss.dart';
+import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
 import 'package:sher_mech/utility/font.dart';
+import 'package:sher_mech/views/vehiclemake.dart';
 
 class Performa_invoice extends StatefulWidget {
   const Performa_invoice({super.key});
@@ -18,6 +24,66 @@ class _Performa_invoiceState extends State<Performa_invoice> {
     final TextEditingController _datecontroller= TextEditingController();
   final TextEditingController _jobcard_datecontroller= TextEditingController();
   final TextEditingController _registercontroller= TextEditingController();
+
+
+
+
+  List<String> _vehicleNameSuggestions = [];
+  List<String> _modelSuggestions = [];
+  List<String> _makeSuggestions = [];
+ bool isLoading=false;
+ List JobcardbillList = [];
+
+Future<void> getData_jobcard() async {
+    String query = 'SELECT * FROM Newjobcard ORDER BY id';
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      bool isConnected = await connect();
+      if (isConnected) {
+        String result = await sqlConnection.getData(query);
+        if (result.isNotEmpty) {
+          List<dynamic> data = json.decode(result);
+          setState(() {
+            JobcardbillList = List<Map<String, dynamic>>.from(data);
+            //filteredJobcardList = List.from(JobcardbillList); 
+          });
+        } else {
+          Fluttertoast.showToast(msg: 'No data found');
+          setState(() {
+            JobcardbillList = [];
+            //filteredJobcardList = [];
+          });
+        }
+      } else {
+        Fluttertoast.showToast(msg: 'Database connection failed');
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Error: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+   void onJobcardSelected(String jobcardNo) {
+    final selectedJobcard =
+        JobcardbillList.firstWhere((jobcard) => jobcard['jobcardno'] == jobcardNo);
+    setState(() {
+      _jobcard_datecontroller.text = selectedJobcard['arivedate'] ?? '';
+      _registercontroller.text = selectedJobcard['registerno'] ?? '';
+      
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData_jobcard();
+  }
 
   List names =[
     "Labour Charge","Labour Charge","Labour Charge"
@@ -69,7 +135,57 @@ class _Performa_invoiceState extends State<Performa_invoice> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _newjobtxtShortfield("jobcard No",_jobcardnocontroller),
+                              Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                  
+                  Text("Jobcard No",style: getFonts(16, Colors.black),),
+                  Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+                ],),
+              IntrinsicHeight(
+  child: Container(
+    constraints: BoxConstraints(
+      minHeight: 45,
+      maxWidth: 171, // Optional: Adjust as needed
+    ),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(5),
+      color: Colors.white,
+      border: Border.all(color: Appcolors().searchTextcolor),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(width: 5),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: EasyAutocomplete(
+              controller: _jobcardnocontroller,
+              suggestions: JobcardbillList
+                  .map((jobcard) => jobcard['jobcardno'].toString())
+                  .toList(),
+              onSubmitted: (value) {
+                onJobcardSelected(value);
+              },
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true, // Make the input compact
+                contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
+                      
+              ],
+            ),
                               Container(
                                 child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,6 +217,7 @@ class _Performa_invoiceState extends State<Performa_invoice> {
                                               }
                                             },
                                             controller: _datecontroller,
+                                            style: filedFonts(),
                                             readOnly: true, 
                                             decoration: InputDecoration(
                                               isDense: true,
@@ -144,7 +261,7 @@ class _Performa_invoiceState extends State<Performa_invoice> {
                                                 Row(
                                                   children: [
                                                   
-                                                  Text("Date",style: getFonts(16, Colors.black),),
+                                                  Text("JobcardDate",style: getFonts(16, Colors.black),),
                                                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                                                 ],),
                                                Container(
@@ -168,6 +285,7 @@ class _Performa_invoiceState extends State<Performa_invoice> {
                                               }
                                             },
                                             controller: _jobcard_datecontroller,
+                                            style: filedFonts(),
                                             readOnly: true, 
                                             decoration: InputDecoration(
                                               isDense: true,
@@ -273,14 +391,18 @@ class _Performa_invoiceState extends State<Performa_invoice> {
               ),
               SizedBox(width: 15,),
               Center(
-                child: Text(names[index]),
+                child: Container(
+                  width: 40,
+                  child: TextField()),
               ),
               SizedBox(width: 15,),
               Expanded(
                 child: Center(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 50),
-                    child: Text(amt[index]),
+                    child: Container(
+                      width: 40,
+                      child: TextField()),
                   ),
                 ),
               ),
@@ -346,6 +468,7 @@ class _Performa_invoiceState extends State<Performa_invoice> {
                     Expanded( 
                       child: TextFormField(
                         controller: controller,
+                        style: filedFonts(),
                          validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter $textrow';

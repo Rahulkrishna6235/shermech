@@ -25,18 +25,20 @@ class _VehiclemodalState extends State<Vehiclemodal> {
   bool isLoading = false;
   List<Map<String, dynamic>> vehiclemodalList = [];
   List<Map<String, dynamic>> filteredVehicleList = [];
+  List<Map<String,dynamic>> vehicleList=[];
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _subtitleController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
   List<String> _suggestions = [];
-
+int? _selectedSiNo; 
   @override
   void initState() {
     super.initState();
     connectAndGetData();
     _searchController.addListener(_filterSearchResults);
+    getData();
   }
 
   Future<void> connectAndGetData() async {
@@ -219,9 +221,12 @@ String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtit
           .toList();
     });
   }
-Future<List<String>> gggetData(String searchValue) async {
-    String query = 'SELECT VehicleName FROM vehicleMake ';
-    List<String> suggestions = [];
+
+Future<void> getData() async {
+    String query = 'SELECT * FROM vehicleMake ORDER BY SiNo';
+    setState(() {
+      isLoading = true;
+    });
 
     try {
       bool isConnected = await connect();
@@ -229,37 +234,44 @@ Future<List<String>> gggetData(String searchValue) async {
         String result = await sqlConnection.getData(query);
         if (result.isNotEmpty) {
           List<dynamic> data = json.decode(result);
-          for (var item in data) {
-            suggestions.add(item['VehicleName']);
+          setState(() {
+            vehicleList = List<Map<String, dynamic>>.from(data);
+          });
+          int siNo=1;
+          for(var vehiclemake in vehicleList){
+              vehiclemake['SiNo']=siNo++;
           }
+        } else {
+          Fluttertoast.showToast(msg: 'No data found');
+          setState(() {
+            vehicleList = [];
+          });
         }
       } else {
         Fluttertoast.showToast(msg: 'Database connection failed');
       }
     } catch (e) {
       Fluttertoast.showToast(msg: 'Error: $e');
-    }
-
-    return suggestions;
-  }
-  
-   fetchSuggestions(String query) async {
-    // if (query.isNotEmpty) {
-      List<String> fetchedSuggestions = await  gggetData(query);
+    } finally {
       setState(() {
-       _suggestions = fetchedSuggestions.map((e) => e).toList();
-       fetchedSuggestions=_suggestions;
-      //   fetchedSuggestions.firstWhere((element) {
-      // return element.toLowerCase().contains(query.toLowerCase());
-      //   },);
+        isLoading = false;
       });
-    // } else {
-    //   setState(() {
-    //     _suggestions = [];
-    //   });
-    // }
-    // return _suggestions;
+    }
   }
+
+  
+
+   void onJobcardSelected(String jobcardNo) {
+  try {
+    final selectedJobcard =
+        vehicleList.firstWhere((jobcard) => jobcard['VehicleName'] == jobcardNo);
+
+    // Perform necessary actions with selectedJobcard
+    print('Selected Jobcard: $selectedJobcard');
+  } catch (e) {
+    Fluttertoast.showToast(msg: 'Error: No matching data found');
+  }
+}
 
 
   @override
@@ -412,16 +424,12 @@ Future<List<String>> gggetData(String searchValue) async {
                               onSelected: (value) {
                                  if (value == 'Edit') {
                             // Navigator.push(context, MaterialPageRoute(builder: (_) => Hdhdh(id: index,modalsubtitle: vehiclemodalList[index]['modelsubtitle'],modeletitle: vehiclemodalList[index]['modelsubtitle'], )));
-                                  updateVehiclemodal(vehiclemodalList[index]['ID'], vehiclemodalList[index]['modeltitle'], vehiclemodalList[index]['modelsubtitle']);
-                                     
+                                  //updateVehiclemodal(vehiclemodalList[index]['ID'], vehiclemodalList[index]['modeltitle'], vehiclemodalList[index]['modelsubtitle']);
+                                   adaPopup(title:vehiclemodalList[index]["modeltitle"],subtitle: vehiclemodalList[index]["modelsubtitle"],id:vehiclemodalList[index]["ID"] );  
                                       } else if (value == 'Delete') {
                                         deleteVehicle(filteredVehicleList[index]["ID"]); 
                                       }
-                                // if (value == 'Edit') {
-                                //   // Add edit functionality here
-                                // } else if (value == 'Delete') {
-                                //   deleteVehicle(filteredVehicleList[index]["ID"]);
-                                // }
+      
                               },
                               itemBuilder: (BuildContext context) => [
                                 PopupMenuItem(
@@ -449,7 +457,14 @@ Future<List<String>> gggetData(String searchValue) async {
       ),
     );
   }
-  adaPopup() {
+  adaPopup({String ? title,String? subtitle,int? id}) {
+    if (title != null && subtitle != null && id !=null) {
+      setState(() {
+      _titleController.text = title;
+      _subtitleController.text = subtitle;
+      _selectedSiNo = id; 
+    });  
+    }
     return showDialog(
       context: context,
       builder: (context) {
@@ -459,92 +474,108 @@ Future<List<String>> gggetData(String searchValue) async {
           content: SingleChildScrollView(
             child: SafeArea(
               child: Container(
-                height: 350,
-                child: Column(
-                  children: [
-                      Container(
-      width: 290,
-      height: 58,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: TextFormField(
-        controller: _titleController,
-        validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a vehicle model';
-                      }
-                      return null;
-                    }, 
-        decoration: InputDecoration(
-                      isDense: true,
-                      filled: true,
-                      fillColor: Appcolors().scafoldcolor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Appcolors().maincolor),
+                height: 250,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        
+                                        Text(_selectedSiNo == null ? "Enter Details" : "Edit Details",style: getFonts(18, Colors.black),),
+                                        IconButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          icon: Icon(Icons.close),
+                                        ),
+                                      ],
+                                    ),
                       ),
-                      hintText: "Enter the model",
-                      hintStyle: TextStyle(color: Color(0xFF948C93)),
-                    ),
-        autofocus: true,
-      ),
-    ),
-                    Container(
-                          width: 290,
-                          height: 58,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Appcolors().maincolor),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: EasyAutocomplete(
-                            progressIndicatorBuilder: Center(
-                              child: CircularProgressIndicator(),
+                        Container(
+                        width: 290,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: TextFormField(
+                          controller: _titleController,
+                          validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a vehicle model';
+                        }
+                        return null;
+                      }, 
+                          decoration: InputDecoration(
+                        isDense: true,
+                        filled: true,
+                        fillColor: Appcolors().scafoldcolor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(color: Appcolors().maincolor),
+                        ),
+                        hintText: "Enter the model",
+                        hintStyle: TextStyle(color: Color(0xFF948C93)),
+                      ),
+                          autofocus: true,
+                        ),
+                      ),
+                      Container(
+                            width: 290,
+                            height: 58,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Appcolors().maincolor),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            controller: _subtitleController,
-                            suggestions: _suggestions,
-                            // asyncSuggestions: (searchValue) async{
-                            // return  await fetchSuggestions(searchValue);},
-                            // suggestionBuilder: (data) {
-                            //   return Text(data);
-                            // },
-                            onChanged: (value) {
-                             setState(() {
-                               fetchSuggestions(value);
-                             });
-                            },
-                            onSubmitted: (value) {
-                              final selectedModel = value;
-                              print('Selected value: $value');
-                              // _subtitleController.clear();
-                              
-                            },
-                            decoration: InputDecoration(
-                              border: InputBorder.none
+                            child: EasyAutocomplete(
+                                                        controller: _subtitleController,
+                                                        suggestions: vehicleList
+                                      .map((jobcard) => jobcard['VehicleName'].toString())
+                                      .toList(),
+                                                        onSubmitted: (value) {
+                                    onJobcardSelected(value);
+                                                        },
+                                                      decoration: InputDecoration(
+                            border: InputBorder.none
+                          ),
+                                                      ),
+                          ),
+                      const SizedBox(height: 15),
+                      GestureDetector(
+                        onTap: () async {
+                          bool success = false;
+                      if (_selectedSiNo != null) {
+                        success = await updateVehiclemodal(_selectedSiNo!, _subtitleController.text,_titleController.text);
+                      } else {
+                        success = await post(
+                          _titleController.text.trim(),
+        _subtitleController.text.trim(),
+                        );
+                      }
+                      if (success) {
+                        Navigator.pop(context);
+                      }
+                        },
+                        child: Center(
+                          child: Container(
+                            width: 155,
+                            height: 43,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Color(0xFF0008B4),
+                            ),
+                            child: Center(
+                              child: Text("Save", style: getFonts(14, Colors.white)),
                             ),
                           ),
                         ),
-                    const SizedBox(height: 15),
-                    // GestureDetector(
-                    //   onTap: () async {
-                        
-                    //   },
-                    //   child: Center(
-                    //     child: Container(
-                    //       width: 155,
-                    //       height: 43,
-                    //       decoration: BoxDecoration(
-                    //         borderRadius: BorderRadius.circular(10),
-                    //         color: Color(0xFF0008B4),
-                    //       ),
-                    //       child: Center(
-                    //         child: Text("Save", style: getFonts(14, Colors.white)),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                  
-                  ],
+                      ),
+                    
+                    ],
+                  ),
                 ),
               ),
             ),

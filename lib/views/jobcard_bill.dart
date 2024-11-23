@@ -29,6 +29,14 @@ class _JobcardBillState extends State<JobcardBill> {
  final TextEditingController _kvmcoverController=TextEditingController();
  final TextEditingController _jc_startnoController=TextEditingController();
  final TextEditingController _jc_finishController=TextEditingController();
+  final TextEditingController _chassisNoController=TextEditingController();
+    final TextEditingController _engineNoController=TextEditingController();
+        final TextEditingController _nameNoController=TextEditingController();
+    final TextEditingController _adressNoController=TextEditingController();
+    final TextEditingController _phonenoNoController=TextEditingController();
+final TextEditingController _cusvoiceController=TextEditingController();
+
+
   List<String> _vehicleNameSuggestions = [];
   List<String> _modelSuggestions = [];
   List<String> _makeSuggestions = [];
@@ -70,50 +78,32 @@ Future<void> getData_jobcard() async {
     }
   }
 
-   Future<Map<String, List<String>>> getMultipleColumnsData(String searchValue) async {
-  String query = 'SELECT registerno, model,make FROM Newjobcard WHERE registerno LIKE ? OR model LIKE ? OR make LIKE ?';
-  Map<String, List<String>> suggestionsMap = {'registerno': [], 'model': [],'make': []};
-
-  try {
-    bool isConnected = await connect();
-    if (isConnected) {
-      String result = await sqlConnection.getData(query,);
-      if (result.isNotEmpty) {
-        List<dynamic> data = json.decode(result);
-        for (var item in data) {
-          suggestionsMap['registerno']?.add(item['registerno']);
-          suggestionsMap['model']?.add(item['model']);
-          suggestionsMap['make']?.add(item['make']);
-        }
-      }
-    } else {
-      Fluttertoast.showToast(msg: 'Database connection failed');
-    }
-  } catch (e) {
-    Fluttertoast.showToast(msg: 'Error: $e');
-  }
-
-  return suggestionsMap;
-}
-
-void fetchSuggestions(String query) async {
-  if (query.isNotEmpty) {
-    Map<String, List<String>> fetchedSuggestions = await getMultipleColumnsData(query);
-
+   void onJobcardSelected(String jobcardNo) {
+    final selectedJobcard =
+        JobcardbillList.firstWhere((jobcard) => jobcard['jobcardno'] == jobcardNo);
     setState(() {
-      _vehicleNameSuggestions = fetchedSuggestions['registerno'] ?? [];
-      _modelSuggestions = fetchedSuggestions['model'] ?? [];
-      _makeSuggestions = fetchedSuggestions['make']??[];
-    });
-  } else {
-    setState(() {
-      _vehicleNameSuggestions = [];
-      _modelSuggestions = [];
-      _makeSuggestions=[];
+      _jobcard_dateController.text = selectedJobcard['arivedate'] ?? '';
+      _registernoController.text = selectedJobcard['registerno'] ?? '';
+      _modalController.text = selectedJobcard['model'] ?? '';
+      _makeController.text = selectedJobcard['make'] ?? '';
+      _machanicController.text = selectedJobcard['Technicians'] ?? '';
+      _kvmcoverController.text = selectedJobcard['kilometer'] ?? '';
+      _jc_startnoController.text = selectedJobcard['jc_start'] ?? '';
+      _jc_finishController.text = selectedJobcard['jc_finish'] ?? '';
+      _engineNoController.text = selectedJobcard['engine_no'] ?? '';
+      _chassisNoController.text = selectedJobcard['chassisno'] ?? '';
+      _nameNoController.text = selectedJobcard['customername'] ?? '';
+      _adressNoController.text = selectedJobcard['adress'] ?? '';
+      _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
+      _cusvoiceController.text =selectedJobcard['customervoice'] ?? '';
     });
   }
-}
 
+  @override
+  void initState() {
+    super.initState();
+    getData_jobcard();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,8 +146,61 @@ void fetchSuggestions(String query) async {
          Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                        
-                        _newBillShortfield("jobcard No", _jobcardnoController),
+                        Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                  
+                  Text("Jobcard No",style: getFonts(16, Colors.black),),
+                  Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+                ],),
+                IntrinsicHeight(
+  child: Container(
+    constraints: BoxConstraints(
+      minHeight: 45,
+      maxWidth: 171, // Optional: Adjust as needed
+    ),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(5),
+      color: Colors.white,
+      border: Border.all(color: Appcolors().searchTextcolor),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(width: 5),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: EasyAutocomplete(
+              controller: _jobcardnoController,
+              suggestionTextStyle: filedFonts(),
+              suggestions: JobcardbillList
+                  .map((jobcard) => jobcard['jobcardno'].toString())
+                  .toList(),
+              onSubmitted: (value) {
+                onJobcardSelected(value);
+              },
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isDense: true, // Make the input compact
+                contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
+                      
+              ],
+            ),
+          ),
+            
                          Container(
            
             child: Column(
@@ -222,40 +265,7 @@ void fetchSuggestions(String query) async {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                         
-                         Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                  
-                  Text("registerno",style: getFonts(16, Colors.black),),
-                  Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
-                ],),
-                Container(
-                        height: 45,
-                        width: 171,
-                        decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.white, 
-                border: Border.all(color: Appcolors().searchTextcolor)
-                        ),
-                        child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0), 
-                child:  EasyAutocomplete(
-            suggestions: _vehicleNameSuggestions,
-            onChanged: (value) {
-              print('VehicleName onChanged: $value');
-            },
-            onSubmitted: (value) {
-              _registernoController.text = value;
-            },
-          ),
-                        ),
-                      ),
-              ],
-            ),
-          ),
+                         _newjobtxtShortfield("Register No", _registernoController),
                          Container(
            
             child: Column(
@@ -288,6 +298,7 @@ void fetchSuggestions(String query) async {
               }
             },
             controller: _jobcard_dateController,
+            style: filedFonts(),
             readOnly: true, 
             decoration: InputDecoration(
               isDense: true,
@@ -316,86 +327,18 @@ void fetchSuggestions(String query) async {
           )
                        ],) ,
                        SizedBox(height: 10,),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                        
-                         Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                  
-                  Text("make",style: getFonts(16, Colors.black),),
-                  Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
-                ],),
-                Container(
-                        height: 45,
-                        width: 171,
-                        decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.white, 
-                border: Border.all(color: Appcolors().searchTextcolor)
-                        ),
-                        child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0), 
-                child:  EasyAutocomplete(
-            suggestions: _makeSuggestions,
-            onChanged: (value) {
-              print('VehicleName onChanged: $value');
-            },
-            onSubmitted: (value) {
-              _makeController.text = value;
-            },
-          ),
-                        ),
-                      ),
-              ],
-            ),
-          ),
-            Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                  
-                  Text("model",style: getFonts(16, Colors.black),),
-                  Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
-                ],),
-                Container(
-                        height: 45,
-                        width: 171,
-                        decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.white, 
-                border: Border.all(color: Appcolors().searchTextcolor)
-                        ),
-                        child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0), 
-                child: EasyAutocomplete(
-            suggestions: _modelSuggestions,
-            onChanged: (value) {
-              print('VehicleName onChanged: $value');
-            },
-            onSubmitted: (value) {
-              _modalController.text = value;
-            },
-          ),
-                        ),
-                      ),
-              ],
-            ),
-          )
+                       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _newjobtxtShortfield("Model", _modalController),
+                         _newjobtxtShortfield("Make", _makeController)
 
-                        
-                       ],) ,
+                        ],
+                       ),
                        SizedBox(height: 10,),
                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _newjobtxtShortfield("Mechanic", _jc_finishController),
-                         _newjobtxtShortfield("KM Covered", _jc_finishController)
+                          _newjobtxtShortfield("Mechanic", _machanicController),
+                         _newjobtxtShortfield("KM Covered", _kvmcoverController)
 
                         ],
                        ),
@@ -410,8 +353,8 @@ void fetchSuggestions(String query) async {
                        SizedBox(height: 10,),
                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _newjobtxtShortfield("Enigine No", _jc_finishController),
-                         _newjobtxtShortfield("Chassis No", _jc_finishController)
+                          _newjobtxtShortfield("Enigine No", _engineNoController),
+                         _newjobtxtShortfield("Chassis No", _chassisNoController)
 
                         ],
                        ),
@@ -423,7 +366,7 @@ void fetchSuggestions(String query) async {
            SizedBox(height: 16,),
                Padding(
                  padding: const EdgeInsets.only(left: 25),
-                 child: _Nnewjobtxtfield("Name", _registernoController),
+                 child: _Nnewjobtxtfield("Name", _nameNoController),
                ),
                SizedBox(height: 10,),
                Padding(
@@ -451,7 +394,8 @@ void fetchSuggestions(String query) async {
                       SizedBox(width: 5), 
                       Expanded( 
                         child: TextFormField(
-                          controller: _closingdateController,
+                          controller: _adressNoController,
+                          style: filedFonts(),
                            validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Adress';
@@ -476,7 +420,7 @@ void fetchSuggestions(String query) async {
                SizedBox(height: 16,),
                Padding(
                  padding: const EdgeInsets.only(left: 25),
-                 child: _Nnewjobtxtfield("Mobile", _registernoController),
+                 child: _Nnewjobtxtfield("Mobile", _phonenoNoController),
                ),
                SizedBox(height: 40,),
            Padding(
@@ -519,6 +463,7 @@ void fetchSuggestions(String query) async {
                                              ),
                              ),
                  ),
+                 
              SizedBox(height: 140,),
              
                  Padding(
@@ -752,6 +697,7 @@ void fetchSuggestions(String query) async {
                     Expanded( 
                       child: TextFormField(
                         controller: controller,
+                        style: filedFonts(),
                          validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter $textrow';
@@ -762,6 +708,7 @@ void fetchSuggestions(String query) async {
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.only(bottom: 12), 
+                          
                         ),
                       ),
                     ),
@@ -798,6 +745,7 @@ void fetchSuggestions(String query) async {
                     Expanded( 
                       child: TextFormField(
                         controller: controller,
+                        style: filedFonts(),
                          validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter $textrow';

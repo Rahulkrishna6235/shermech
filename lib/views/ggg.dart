@@ -719,3 +719,236 @@
 
 //   Country({required this.code, required this.name});
 // }
+import 'package:flutter/material.dart';
+import 'package:easy_autocomplete/easy_autocomplete.dart';
+
+class AutoCompleteWithFutureBuilder extends StatefulWidget {
+  @override
+  _AutoCompleteWithFutureBuilderState createState() =>
+      _AutoCompleteWithFutureBuilderState();
+}
+
+class _AutoCompleteWithFutureBuilderState
+    extends State<AutoCompleteWithFutureBuilder> {
+  final TextEditingController _subtitleController = TextEditingController();
+  late Future<List<String>> _suggestionsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _suggestionsFuture = fetchInitialSuggestions(); // Load initial data
+  }
+
+  Future<List<String>> fetchInitialSuggestions() async {
+    // Simulate a delay for initial fetch
+    await Future.delayed(Duration(seconds: 2));
+    return ["Initial", "Suggestions", "For", "AutoComplete"];
+  }
+
+  Future<List<String>> fetchSuggestions(String query) async {
+    // Simulate a search suggestion fetch
+    await Future.delayed(Duration(seconds: 1));
+    return [
+      "$query Suggestion 1",
+      "$query Suggestion 2",
+      "$query Suggestion 3"
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Autocomplete with FutureBuilder"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: FutureBuilder<List<String>>(
+          future: _suggestionsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            } else if (snapshot.hasData) {
+              final _suggestions = snapshot.data ?? [];
+
+              return EasyAutocomplete(
+                progressIndicatorBuilder: Center(
+                  child: CircularProgressIndicator(),
+                ),
+                controller: _subtitleController,
+                suggestions: _suggestions,
+                onChanged: (value) {
+                  setState(() {
+                    _suggestionsFuture = fetchSuggestions(value);
+                  });
+                },
+                onSubmitted: (value) {
+                  print('Selected value: $value');
+                },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: "Start typing...",
+                ),
+              );
+            } else {
+              return Center(child: Text("No suggestions available."));
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+//  Row(
+//                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                           children: [
+                        
+//                          Container(
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Row(
+//                   children: [
+                  
+//                   Text("make",style: getFonts(16, Colors.black),),
+//                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+//                 ],),
+//                 Container(
+//                         height: 45,
+//                         width: 171,
+//                         decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(5),
+//                 color: Colors.white, 
+//                 border: Border.all(color: Appcolors().searchTextcolor)
+//                         ),
+//                         child: Padding(
+//                 padding: const EdgeInsets.symmetric(horizontal: 8.0), 
+//                 child:  EasyAutocomplete(
+//             suggestions: _makeSuggestions,
+//             onChanged: (value) {
+//               print('VehicleName onChanged: $value');
+//             },
+//             onSubmitted: (value) {
+//               _makeController.text = value;
+//             },
+//           ),
+//                         ),
+//                       ),
+//               ],
+//             ),
+//           ),
+//             Container(
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Row(
+//                   children: [
+                  
+//                   Text("model",style: getFonts(16, Colors.black),),
+//                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+//                 ],),
+//                 Container(
+//                         height: 45,
+//                         width: 171,
+//                         decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(5),
+//                 color: Colors.white, 
+//                 border: Border.all(color: Appcolors().searchTextcolor)
+//                         ),
+//                         child: Padding(
+//                 padding: const EdgeInsets.symmetric(horizontal: 8.0), 
+//                 child: EasyAutocomplete(
+//             suggestions: _modelSuggestions,
+//             onChanged: (value) {
+//               print('VehicleName onChanged: $value');
+//             },
+//             onSubmitted: (value) {
+//               _modalController.text = value;
+//             },
+//           ),
+//                         ),
+//                       ),
+//               ],
+//             ),
+//           )
+
+                        
+//                        ],) ,
+
+
+
+//  Future<Map<String, List<String>>> getMultipleColumnsData(String searchValue) async {
+//   String query = 'SELECT registerno, model,make FROM Newjobcard WHERE registerno LIKE ? OR model LIKE ? OR make LIKE ?';
+//   Map<String, List<String>> suggestionsMap = {'registerno': [], 'model': [],'make': []};
+
+//   try {
+//     bool isConnected = await connect();
+//     if (isConnected) {
+//       String result = await sqlConnection.getData(query,);
+//       if (result.isNotEmpty) {
+//         List<dynamic> data = json.decode(result);
+//         for (var item in data) {
+//           suggestionsMap['registerno']?.add(item['registerno']);
+//           suggestionsMap['model']?.add(item['model']);
+//           suggestionsMap['make']?.add(item['make']);
+//         }
+//       }
+//     } else {
+//       Fluttertoast.showToast(msg: 'Database connection failed');
+//     }
+//   } catch (e) {
+//     Fluttertoast.showToast(msg: 'Error: $e');
+//   }
+
+//   return suggestionsMap;
+// }
+
+// void fetchSuggestions(String query) async {
+//   if (query.isNotEmpty) {
+//     Map<String, List<String>> fetchedSuggestions = await getMultipleColumnsData(query);
+
+//     setState(() {
+//       _vehicleNameSuggestions = fetchedSuggestions['registerno'] ?? [];
+//       _modelSuggestions = fetchedSuggestions['model'] ?? [];
+//       _makeSuggestions = fetchedSuggestions['make']??[];
+//     });
+//   } else {
+//     setState(() {
+//       _vehicleNameSuggestions = [];
+//       _modelSuggestions = [];
+//       _makeSuggestions=[];
+//     });
+//   }
+// }
+
+//  fetchSuggestions(String query) async {
+   
+//     if (query.isNotEmpty) {
+//       setState(() {
+//         isLoading = true;
+//       });
+//     // if (query.isNotEmpty) {
+//     await Future.delayed(Duration(seconds: 1));
+//       List<String> fetchedSuggestions = await  gggetData(query);
+//       setState(() {
+//        _suggestions = fetchedSuggestions.map((e) => e).toList();
+//        fetchedSuggestions=_suggestions;
+//        isLoading=false;
+//       //   fetchedSuggestions.firstWhere((element) {
+//       // return element.toLowerCase().contains(query.toLowerCase());
+//       //   },);
+//       });
+//     // } else {
+//     //   setState(() {
+//     //     _suggestions = [];
+//     //   });
+//     // }
+//     // return _suggestions;
+//   }else {
+//       setState(() {
+//         _suggestions = [];
+//       });
+//     }
+//    }

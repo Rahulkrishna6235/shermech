@@ -1,6 +1,6 @@
 import 'package:sher_mech/views/vehiclemake.dart';
 
-String ipAdress = "192.168.0.167";
+String ipAdress = "192.168.29.217";
 String port="1433";
 String databasename ="shermecK";
 String username = "sa";

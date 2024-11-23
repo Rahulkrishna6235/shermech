@@ -298,6 +298,7 @@ String query = """
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _newjobtxtShortfield("jobcard No",_jobcardnoController),
+                            SizedBox(width: 10,),
                             Container(
                               child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,

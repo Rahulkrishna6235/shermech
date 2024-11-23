@@ -10,3 +10,6 @@ TextStyle appbarFonts (double fontsize,Color color){
 TextStyle DrewerFonts (){
   return GoogleFonts.nunitoSans(fontWeight: FontWeight.w700,fontSize: 14 ,color:Colors.black );
 }
+TextStyle filedFonts (){
+  return GoogleFonts.poppins(fontWeight: FontWeight.w400,fontSize: 14 ,color:Colors.black );
+}
