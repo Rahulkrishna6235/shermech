@@ -35,6 +35,8 @@ class _JobcardBillState extends State<JobcardBill> {
     final TextEditingController _adressNoController=TextEditingController();
     final TextEditingController _phonenoNoController=TextEditingController();
 final TextEditingController _cusvoiceController=TextEditingController();
+final TextEditingController _totalAmountController=TextEditingController();
+final TextEditingController _amountController=TextEditingController();
 
 
   List<String> _vehicleNameSuggestions = [];
@@ -42,6 +44,8 @@ final TextEditingController _cusvoiceController=TextEditingController();
   List<String> _makeSuggestions = [];
  bool isLoading=false;
  List JobcardbillList = [];
+ List performaList = [];
+ 
 
 Future<void> getData_jobcard() async {
     String query = 'SELECT * FROM Newjobcard ORDER BY id';
@@ -78,9 +82,54 @@ Future<void> getData_jobcard() async {
     }
   }
 
-   void onJobcardSelected(String jobcardNo) {
-    final selectedJobcard =
-        JobcardbillList.firstWhere((jobcard) => jobcard['jobcardno'] == jobcardNo);
+Future<void> get_Performa() async {
+    String query = 'SELECT * FROM PerformaPerticular ORDER BY JobcardNo';
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      bool isConnected = await connect();
+      if (isConnected) {
+        String result = await sqlConnection.getData(query);
+        if (result.isNotEmpty) {
+          List<dynamic> data = json.decode(result);
+          setState(() {
+            performaList = List<Map<String, dynamic>>.from(data);
+            //filteredJobcardList = List.from(JobcardbillList); 
+          });
+        } else {
+          Fluttertoast.showToast(msg: 'No data found');
+          setState(() {
+            performaList = [];
+            //filteredJobcardList = [];
+          });
+        }
+      } else {
+        Fluttertoast.showToast(msg: 'Database connection failed');
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Error: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+ void onJobcardSelected(String jobcardNo) {
+  final selectedJobcard = JobcardbillList.firstWhere(
+    (jobcard) => jobcard['jobcardno'] == jobcardNo,
+    orElse: () => <String, dynamic>{} 
+  );
+
+ final selectedPerforma = performaList
+    .where((performa) => performa['JobcardNo'] == jobcardNo)
+    .toList();
+
+      
+
+  if (selectedJobcard.isNotEmpty) {
     setState(() {
       _jobcard_dateController.text = selectedJobcard['arivedate'] ?? '';
       _registernoController.text = selectedJobcard['registerno'] ?? '';
@@ -95,14 +144,37 @@ Future<void> getData_jobcard() async {
       _nameNoController.text = selectedJobcard['customername'] ?? '';
       _adressNoController.text = selectedJobcard['adress'] ?? '';
       _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
-      _cusvoiceController.text =selectedJobcard['customervoice'] ?? '';
+      _cusvoiceController.text = selectedJobcard['customervoice'] ?? '';
+
+      performaList = selectedPerforma.map((performa) {
+  return {
+    'labourschedule': performa['labourschedule'] ?? '',
+    'amount': (performa['amount'] ?? '').toString(), 
+  };
+}).toList();
+
+//  double totalAmount = 0.0;
+//       for (var performa in selectedPerforma) {
+//         var amount = performa['amount'];
+//         if (amount != null) {
+//           totalAmount += double.tryParse(amount.toString()) ?? 0.0; 
+//         }
+//       }
+
+//       _totalAmountController.text = totalAmount.toStringAsFixed(2);
     });
+  } else {
+    Fluttertoast.showToast(msg: 'Jobcard not found');
   }
+}
+
+
 
   @override
   void initState() {
     super.initState();
     getData_jobcard();
+    get_Performa();
   }
 
   @override
@@ -160,7 +232,7 @@ Future<void> getData_jobcard() async {
   child: Container(
     constraints: BoxConstraints(
       minHeight: 45,
-      maxWidth: 171, // Optional: Adjust as needed
+      maxWidth: 171, 
     ),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(5),
@@ -445,6 +517,8 @@ Future<void> getData_jobcard() async {
                     child:Center(child: Text("Customer Request",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
                   ),
                 ),
+               
+
                  Padding(
                    padding: const EdgeInsets.only(top: 6),
                    child: Container(
@@ -455,7 +529,7 @@ Future<void> getData_jobcard() async {
                                                    child: Text("SL No", style: TextStyle(color: Color(0xFF838383), fontWeight: FontWeight.bold,fontSize: 12,decoration: TextDecoration.underline, )),
                                                  )),
                                                  Padding(
-                                                   padding: const EdgeInsets.only(right: 43),
+                                                   padding: const EdgeInsets.only(right: 103),
                                                    child: Text("Demand/Request", style: TextStyle(color: Color(0xFF838383), fontWeight: FontWeight.bold,fontSize: 12,decoration: TextDecoration.underline, )),
                                                  ),
                                               
@@ -463,8 +537,53 @@ Future<void> getData_jobcard() async {
                                              ),
                              ),
                  ),
+
+                  Container(
+                height: 200,
+              child: ListView.builder(
+                  itemCount: _cusvoiceController.text.isNotEmpty
+        ? _cusvoiceController.text.split(',').length
+        : 0,
+                itemBuilder: (context, index) {
+                  final List<String> customerRequests = _cusvoiceController.text.split(',');
+      final sn = index + 1;
+      final request = customerRequests[index].trim();
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 25),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(5),topRight: Radius.circular(5)),
+                        border: Border(
+                          
+                          bottom: BorderSide(
+                            color: Colors.grey.shade400,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                         
+                          Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Text("$sn"),
+                          ),
+                           
+                          Expanded(child: Center(child: Padding(
+                            padding: const EdgeInsets.only(left: 70),
+                            child: Text(request),
+                          ))),
+                         
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
                  
-             SizedBox(height: 140,),
+             SizedBox(height: 10,),
              
                  Padding(
                   padding: const EdgeInsets.only(right: 22),
@@ -519,18 +638,20 @@ Future<void> getData_jobcard() async {
                     padding:  EdgeInsets.symmetric(vertical: 10),
                     child:Center(child: Text("Operation & Labour Schedule",style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
                   ),
+                  
                 ),
+                
                  Padding(
                    padding: const EdgeInsets.only(top: 6),
                    child: Container(
                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                children:  [
                                                  Expanded(child: Padding(
-                                                   padding: const EdgeInsets.only(left: 3),
+                                                   padding: const EdgeInsets.only(left: 9),
                                                    child: Text("SL No", style: TextStyle(color: Color(0xFF838383), fontWeight: FontWeight.bold,fontSize: 12,decoration: TextDecoration.underline, )),
                                                  )),
                                                  Padding(
-                                                   padding: const EdgeInsets.only(right: 43),
+                                                   padding: const EdgeInsets.only(right: 83),
                                                    child: Text("Charges", style: TextStyle(color: Color(0xFF838383), fontWeight: FontWeight.bold,fontSize: 12,decoration: TextDecoration.underline, )),
                                                  ),
                                                  Expanded(child: Center(child: Text("Amount", style: TextStyle(color: Color(0xFF838383), fontWeight: FontWeight.bold,fontSize: 12,decoration: TextDecoration.underline, )))),
@@ -541,41 +662,125 @@ Future<void> getData_jobcard() async {
               ],
              ),
            ),
-               SizedBox(height: 140,),
-                Padding(
-                 padding: const EdgeInsets.only(right: 247),
-                 child: Text("Payment Details", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 14,decoration: TextDecoration.underline, )),
-               ),
+     Container(padding: EdgeInsets.symmetric(horizontal: 23),
+  height: 200,
+  // decoration: BoxDecoration(
+  //   color: Colors.white,
+  //         boxShadow: [
+  //                            BoxShadow(
+  //                 color: Appcolors().searchTextcolor,
+  //                 blurRadius: 2.0,
+  //                 spreadRadius: 0.0,
+  //                 offset: Offset(0.2, 0.0,), // shadow direction: bottom right
+  //                            )
+  //                        ],
+  // ),
+  child: ListView.builder(
+    itemCount: performaList.length, // Use the length of the populated list
+    itemBuilder: (context, index) {
+      final sn = index + 1;
+      final labourschedule = performaList[index]['labourschedule'];
+      final amount = performaList[index]['amount'].toString();
+
+      return Container(
+        decoration: BoxDecoration(
+          
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.grey.shade400,
+              width: 1,
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 22),
+              child: Text("$sn"),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 70),
+                  child: Text(labourschedule ?? ''),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 70),
+                  child: Text(amount ?? ''),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  ),
+),
+
+
                SizedBox(height: 20,),
-                Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [Text("Total",style: getFonts(12, Colors.black),),
-                      SizedBox(width: 4,),
-                      Text(":",style: getFonts(12, Colors.black),),
-                      SizedBox(width: 4,),
-                      Text("5000",style: getFonts(12, Colors.black),),
-                      ],
-                    ),
-                     SizedBox(height: 10,),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [Text("Total",style: getFonts(12, Colors.black),),
-                      SizedBox(width: 4,),
-                      Text(":",style: getFonts(12, Colors.black),),
-                      SizedBox(width: 4,),
-                      Text("5000",style: getFonts(12, Colors.black),),
-                      ],
-                    ),
-                     SizedBox(height: 10,),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [Text("Total",style: getFonts(12, Colors.black),),
-                      SizedBox(width: 4,),
-                      Text(":",style: getFonts(12, Colors.black),),
-                      SizedBox(width: 4,),
-                      Text("5000",style: getFonts(12, Colors.black),),
-                      ],
-                    ),
+               Padding(
+                 padding: const EdgeInsets.only(left: 20,right: 20),
+                 child: Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                               color: Colors.white,
+                         boxShadow: [
+                             BoxShadow(
+                  color: Appcolors().searchTextcolor,
+                  blurRadius: 2.0,
+                  spreadRadius: 0.0,
+                  offset: Offset(0.0, 0.0,), // shadow direction: bottom right
+                             )
+                         ],
+                  ),
+                  child: Column(
+                    children: [
+                       Padding(
+                   padding: const EdgeInsets.only(right: 247),
+                   child: Text("Payment Details", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 14,decoration: TextDecoration.underline, )),
+                 ),
+                 SizedBox(height: 20,),
+                  Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [Text("Total Meterial",style: getFonts(12, Colors.black),),
+                        SizedBox(width: 4,),
+                        Text(":",style: getFonts(12, Colors.black),),
+                        SizedBox(width: 4,),
+                        Text("5000",style: getFonts(12, Colors.black),),
+                        ],
+                      ),
+                       SizedBox(height: 10,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [Text("Total Lobour",style: getFonts(12, Colors.black),),
+                        SizedBox(width: 4,),
+                        Text(":",style: getFonts(12, Colors.black),),
+                        SizedBox(width: 4,),
+                        Text("5000",style: getFonts(12, Colors.black),),
+                        ],
+                      ),
+                       SizedBox(height: 10,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [Text("Total",style: getFonts(12, Colors.black),),
+                        SizedBox(width: 4,),
+                        Text(":",style: getFonts(12, Colors.black),),
+                        SizedBox(width: 4,),
+                        Text("5000",style: getFonts(12, Colors.black),),
+                        ],
+                      ),
+                    ],
+                  ),
+                 ),
+               ),
  SizedBox(height: 30,),
                GestureDetector(
                   onTap: (){

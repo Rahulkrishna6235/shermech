@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sher_mech/utility/colorss.dart';
+import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/font.dart';
+import 'package:sher_mech/views/vehiclemake.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -11,6 +16,44 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+
+   bool isLoading = false;
+  List<Map<String, dynamic>> jobcardList = [];
+Future<void> getData_jobcard() async {
+    String query = 'SELECT * FROM Newjobcard ORDER BY id';
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      bool isConnected = await connect();
+      if (isConnected) {
+        String result = await sqlConnection.getData(query);
+        if (result.isNotEmpty) {
+          List<dynamic> data = json.decode(result);
+          setState(() {
+            jobcardList = List<Map<String, dynamic>>.from(data);
+           
+          });
+        } else {
+          Fluttertoast.showToast(msg: 'No data found');
+          setState(() {
+            jobcardList = [];
+           
+          });
+        }
+      } else {
+        Fluttertoast.showToast(msg: 'Database connection failed');
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Error: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   final _names = ["Total Vehicles", "Ready For Delivery", "Service Vehicles", "Pending Vehicles"];
   final _data = ["24", "25", "25", "44"];
   final _assetImages = [

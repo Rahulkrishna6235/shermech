@@ -37,24 +37,43 @@ class AppDrawer extends StatelessWidget {
               title: Text("MASTERS", style: DrewerFonts()),
               
               children: [
-                ListTile(
-                  title: Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text("Vehicle Modal", style: DrewerFonts()),
-                  ),
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => Vehiclemodal(vehicleData: [],)));
-                  },
-                ),
-                ListTile(
-                  title: Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text("Vehicle Make", style: DrewerFonts()),
-                  ),
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => VehicleMake()));
-                  },
-                ),
+
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 28),
+                      child: Container(
+                                width: 2, // Width of the divider
+                                height: 90, // Total height covering both ListTiles
+                                color: Appcolors().maincolor, // Divider color
+                              ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          ListTile(
+                                        title: Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text("Vehicle Modal", style: DrewerFonts()),
+                                        ),
+                                        onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => Vehiclemodal(vehicleData: [],)));
+                                        },
+                                      ),
+                                      ListTile(
+                                        title: Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text("Vehicle Make", style: DrewerFonts()),
+                                        ),
+                                        onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => VehicleMake()));
+                                        },
+                                      ),
+                        ],
+                      ),
+                    )
+                  ],
+                )
               ],
             ),
           ),
@@ -75,6 +94,7 @@ class AppDrawer extends StatelessWidget {
               title: Text("JOB CARD", style: DrewerFonts()),
               
               children: [
+              
                 ListTile(
                   title: Padding(
                     padding: const EdgeInsets.only(left: 20),
