@@ -13,3 +13,13 @@ TextStyle DrewerFonts (){
 TextStyle filedFonts (){
   return GoogleFonts.poppins(fontWeight: FontWeight.w400,fontSize: 14 ,color:Colors.black );
 }
+TextStyle splashFonts (){
+  return GoogleFonts.hahmlet(fontWeight: FontWeight.w700,fontSize: 44 ,color:Colors.white );
+}
+TextStyle splash2Fonts (){
+  return GoogleFonts.poppins(fontWeight: FontWeight.w400,fontSize: 14 ,color:Colors.white );
+}
+TextStyle drewerFonts (){
+  return GoogleFonts.poppins(fontWeight: FontWeight.w500,fontSize: 14 ,color:Color(0xFF8A8C91)
+ );
+}

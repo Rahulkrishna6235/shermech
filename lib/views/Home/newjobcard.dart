@@ -364,7 +364,61 @@ String query = """
                     SizedBox(height: 19,),
                                 _newjobtxtfield("Location",_locationController),
                                 SizedBox(height: 13,),
-                           _newjobtxtfield("Mobile Number",_mobileController),
+                               Container(
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        children: [
+          Text("Mobile Number", style: getFonts(16, Colors.black)),
+          Text("*", style: TextStyle(fontSize: 16, color: Color(0xFFE22E37))),
+        ],
+      ),
+      Container(
+        height: 45,
+        width: 358,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5),
+          color: Colors.white,
+          border: Border.all(color: Appcolors().searchTextcolor),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            children: [
+              SizedBox(width: 5),
+              Expanded(
+                child: TextFormField(
+                  controller: _mobileController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a mobile number';
+                    }
+                    if (value.length != 10) {
+                      return 'Mobile number must be 10 digits';
+                    }
+                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                      return 'Mobile number must contain only digits';
+                    }
+                    return null;
+                  },
+                  obscureText: false,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.only(bottom: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  ),
+)
+,
+                     
                            SizedBox(height: 19,),
                             _newjobtxtfield("Adress",_adressnoController),
                            

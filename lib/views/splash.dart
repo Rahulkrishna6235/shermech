@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sher_mech/utility/font.dart';
 import 'package:sher_mech/views/Home/mainHome.dart';
 import 'package:sher_mech/views/login.dart';
 
@@ -12,7 +13,7 @@ class Splash extends StatefulWidget {
 class _SplashState extends State<Splash> {
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => MainHome()));
     });
@@ -30,20 +31,34 @@ class _SplashState extends State<Splash> {
         Color(0xFF387FE9),])
       ),
       child: Column(
-         mainAxisAlignment: MainAxisAlignment.center, 
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Center(child: Text("SherMech",style: TextStyle(fontSize: 42,fontWeight: FontWeight.w700,color: Colors.white),)),
-          Row(
-            children: [
-              Container(
-                child: Image.asset("assets/images/logs.jpg"),
-              ),
-              Text("Powered By Shersoft",style: TextStyle(fontSize: 13,color: Colors.white),)
-            ],
-          )
-        ],
+  mainAxisAlignment: MainAxisAlignment.center, 
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    SizedBox(height: 300,),
+    Center(
+      child: Text(
+        "SherMech", 
+        style: splashFonts(),
       ),
+    ),
+    Expanded(
+      child: Align(
+        alignment: Alignment.bottomCenter, 
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center, 
+          children: [
+            Text(
+              "Powered By Shersoft", 
+              style: splash2Fonts(),
+            ),
+          ],
+        ),
+      ),
+    ),
+    SizedBox(height: 20,)
+  ],
+)
+
       ),
     );
   }

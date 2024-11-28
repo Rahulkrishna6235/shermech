@@ -510,7 +510,8 @@ Future<bool> post_performa2() async {
                   ),
                   child: Row(
                     children: [
-                      Expanded(child: Center(child: Text("${index + 1}"))),
+                      Expanded(
+                        child: Center(child: Text("${index + 1}"))),
                       SizedBox(width: 15),
                       Expanded(
                         flex: 2,
@@ -518,17 +519,19 @@ Future<bool> post_performa2() async {
                           controller: _lobourschedulecontroller,
                           decoration: InputDecoration(
                             hintText: "Labour Schedule",
-                        
+                            hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
+                           border: InputBorder.none,isDense: false
                           ),
                         ),
                       ),
-                      SizedBox(width: 15),
-                      Expanded(
+                     SizedBox(width: 25),
+                      Expanded(flex: 1,
                         child: TextField(
                           controller: _amountcontroller,
                           decoration: InputDecoration(
                             hintText: "Amount",
-                          
+                            hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
+                            border: InputBorder.none,isDense: false
                           ),
                           keyboardType: TextInputType.number,
                         ),
@@ -550,7 +553,7 @@ Future<bool> post_performa2() async {
                             Fluttertoast.showToast(msg: "Enter all fields!");
                           }
                         },
-                        icon: Icon(Icons.add, color: Colors.green),
+                        icon: Icon(Icons.add_box_outlined, color: Colors.black,size: 20,),
                       ),
                     ],
                   ),
@@ -583,7 +586,7 @@ Future<bool> post_performa2() async {
                             billDetails.removeAt(index);
                           });
                         },
-                        icon: Icon(Icons.delete, color: Colors.red),
+                        icon: Icon(Icons.delete, color: Colors.red,size: 20,),
                       ),
                     ],
                   ),
@@ -598,13 +601,13 @@ Future<bool> post_performa2() async {
           ),
         ),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(right: 12),
-        child: GestureDetector(
-                    onTap: (){
-                    post_performa();
-                      post_performa2();
-                    },
+      bottomNavigationBar: GestureDetector(
+                  onTap: (){
+                  post_performa();
+                    post_performa2();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
                     child: Container(
                       height: 51,width: 358,
                       decoration: BoxDecoration(
@@ -614,7 +617,7 @@ Future<bool> post_performa2() async {
                       child: Center(child: Text("Save",style: getFonts(16, Colors.white)),
                      ) ),
                   ),
-      )
+                )
     );
   }
    Widget _newjobtxtShortfield (String textrow,TextEditingController controller){

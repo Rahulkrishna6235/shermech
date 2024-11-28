@@ -54,7 +54,7 @@ class AppDrawer extends StatelessWidget {
                           ListTile(
                                         title: Padding(
                       padding: const EdgeInsets.only(left: 20),
-                      child: Text("Vehicle Modal", style: DrewerFonts()),
+                      child: Text("VEHICLE MODEL", style: drewerFonts()),
                                         ),
                                         onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => Vehiclemodal(vehicleData: [],)));
@@ -63,7 +63,7 @@ class AppDrawer extends StatelessWidget {
                                       ListTile(
                                         title: Padding(
                       padding: const EdgeInsets.only(left: 20),
-                      child: Text("Vehicle Make", style: DrewerFonts()),
+                      child: Text("VEHICLE MAKE", style: drewerFonts()),
                                         ),
                                         onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => VehicleMake()));
@@ -82,37 +82,53 @@ class AppDrawer extends StatelessWidget {
             child: ListTile(
               title: Text("CAMPAIGNS", style: DrewerFonts()),
               onTap: () {
-                // Handle navigation or actions here
               },
             ),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 9),
-            child: ExpansionTile(
+            child:ExpansionTile(
               
-              childrenPadding: EdgeInsets.zero,
-              title: Text("JOB CARD", style: DrewerFonts()),
+              title: Text("JOB CARDS", style: DrewerFonts()),
               
               children: [
-              
-                ListTile(
-                  title: Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text("PERFORMA INVOICE", style: DrewerFonts()),
-                  ),
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => Performa_invoice()));
-                  },
-                ),
-                ListTile(
-                  title: Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Text("JOBCARD BILL", style: DrewerFonts()),
-                  ),
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => JobcardBill()));
-                  },
-                ),
+
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 28),
+                      child: Container(
+                                width: 2, 
+                                height: 90, 
+                                color: Appcolors().maincolor, 
+                              ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          ListTile(
+                                        title: Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text("PERFORMA INVOICE", style: drewerFonts()),
+                                        ),
+                                        onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => Performa_invoice()));
+                                        },
+                                      ),
+                                      ListTile(
+                                        title: Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text("JOBCARD BILL", style: drewerFonts()),
+                                        ),
+                                        onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => JobcardBill()));
+                                        },
+                                      ),
+                        ],
+                      ),
+                    )
+                  ],
+                )
               ],
             ),
           ),

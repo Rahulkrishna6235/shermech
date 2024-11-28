@@ -36,7 +36,7 @@ class _JobcardBillState extends State<JobcardBill> {
     final TextEditingController _phonenoNoController=TextEditingController();
 final TextEditingController _cusvoiceController=TextEditingController();
 final TextEditingController _totalAmountController=TextEditingController();
-final TextEditingController _amountController=TextEditingController();
+final TextEditingController _discountControler=TextEditingController();
 
 
   List<String> _vehicleNameSuggestions = [];
@@ -45,7 +45,7 @@ final TextEditingController _amountController=TextEditingController();
  bool isLoading=false;
  List JobcardbillList = [];
  List performaList = [];
- 
+String totalAmountString = '0.00';
 
 Future<void> getData_jobcard() async {
     String query = 'SELECT * FROM Newjobcard ORDER BY id';
@@ -124,7 +124,7 @@ Future<void> get_Performa() async {
   );
 
  final selectedPerforma = performaList
-    .where((performa) => performa['JobcardNo'] == jobcardNo)
+    .where((performa) => performa['Jobcardno'] == jobcardNo)
     .toList();
 
       
@@ -136,7 +136,7 @@ Future<void> get_Performa() async {
       _modalController.text = selectedJobcard['model'] ?? '';
       _makeController.text = selectedJobcard['make'] ?? '';
       _machanicController.text = selectedJobcard['Technicians'] ?? '';
-      _kvmcoverController.text = selectedJobcard['kilometer'] ?? '';
+      _kvmcoverController.text = selectedJobcard['kilometer'].toString() ;
       _jc_startnoController.text = selectedJobcard['jc_start'] ?? '';
       _jc_finishController.text = selectedJobcard['jc_finish'] ?? '';
       _engineNoController.text = selectedJobcard['engine_no'] ?? '';
@@ -145,7 +145,7 @@ Future<void> get_Performa() async {
       _adressNoController.text = selectedJobcard['adress'] ?? '';
       _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
       _cusvoiceController.text = selectedJobcard['customervoice'] ?? '';
-
+      
       performaList = selectedPerforma.map((performa) {
   return {
     'labourschedule': performa['labourschedule'] ?? '',
@@ -153,18 +153,21 @@ Future<void> get_Performa() async {
   };
 }).toList();
 
-//  double totalAmount = 0.0;
-//       for (var performa in selectedPerforma) {
-//         var amount = performa['amount'];
-//         if (amount != null) {
-//           totalAmount += double.tryParse(amount.toString()) ?? 0.0; 
-//         }
-//       }
-
-//       _totalAmountController.text = totalAmount.toStringAsFixed(2);
+  double totalAmount = 0.0;
+      for (var performa in selectedPerforma) {
+        var amount = performa['amount'];
+        if (amount != null) {
+          totalAmount += double.tryParse(amount.toString()) ?? 0.0;
+        }
+      }
+      totalAmountString = totalAmount.toStringAsFixed(2);
     });
   } else {
-    Fluttertoast.showToast(msg: 'Jobcard not found');
+    
+    setState(() {
+      performaList.clear(); 
+      Fluttertoast.showToast(msg: 'Jobcard not found');
+    });
   }
 }
 
@@ -176,7 +179,12 @@ Future<void> get_Performa() async {
     getData_jobcard();
     get_Performa();
   }
-
+  
+  @override
+  void dispose() {
+    performaList=[];
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -448,7 +456,7 @@ Future<void> get_Performa() async {
                                crossAxisAlignment: CrossAxisAlignment.start,
                                children: [
                   Row(children: [
-                    Text("Adress",style: getFonts(16, Colors.black),),
+                    Text("Address",style: getFonts(16, Colors.black),),
                     Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                   ],),
                   Container(
@@ -726,61 +734,93 @@ Future<void> get_Performa() async {
 
                SizedBox(height: 20,),
                Padding(
-                 padding: const EdgeInsets.only(left: 20,right: 20),
-                 child: Container(
-                  height: 150,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                               color: Colors.white,
-                         boxShadow: [
-                             BoxShadow(
-                  color: Appcolors().searchTextcolor,
-                  blurRadius: 2.0,
-                  spreadRadius: 0.0,
-                  offset: Offset(0.0, 0.0,), // shadow direction: bottom right
-                             )
-                         ],
-                  ),
-                  child: Column(
-                    children: [
-                       Padding(
-                   padding: const EdgeInsets.only(right: 247),
-                   child: Text("Payment Details", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 14,decoration: TextDecoration.underline, )),
-                 ),
-                 SizedBox(height: 20,),
-                  Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [Text("Total Meterial",style: getFonts(12, Colors.black),),
-                        SizedBox(width: 4,),
-                        Text(":",style: getFonts(12, Colors.black),),
-                        SizedBox(width: 4,),
-                        Text("5000",style: getFonts(12, Colors.black),),
-                        ],
-                      ),
-                       SizedBox(height: 10,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [Text("Total Lobour",style: getFonts(12, Colors.black),),
-                        SizedBox(width: 4,),
-                        Text(":",style: getFonts(12, Colors.black),),
-                        SizedBox(width: 4,),
-                        Text("5000",style: getFonts(12, Colors.black),),
-                        ],
-                      ),
-                       SizedBox(height: 10,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [Text("Total",style: getFonts(12, Colors.black),),
-                        SizedBox(width: 4,),
-                        Text(":",style: getFonts(12, Colors.black),),
-                        SizedBox(width: 4,),
-                        Text("5000",style: getFonts(12, Colors.black),),
-                        ],
-                      ),
-                    ],
-                  ),
-                 ),
-               ),
+  padding: const EdgeInsets.symmetric(horizontal: 20),
+  child: Container(
+    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    height: 150,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(5),
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Appcolors().searchTextcolor,
+          blurRadius: 2.0,
+          spreadRadius: 0.0,
+          offset: Offset(0.0, 0.0), // shadow direction: bottom right
+        )
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Section: Payment Details
+        Text(
+          "Payment Details",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+        SizedBox(height: 10),
+
+        // Total Material Row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(flex: 1,
+              child: Text("Total Material", style: getFonts(12, Colors.black))),
+           
+            Expanded(flex: 1,
+              child: Text("                    :", style: getFonts(12, Colors.black))),
+            
+            Expanded(flex: 1,
+              child: Text("5000", style: getFonts(12, Colors.black))),
+          ],
+        ),
+        SizedBox(height: 10),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(flex: 1,
+              child: Text("Total Labour", style: getFonts(12, Colors.black))),
+          
+            Expanded(flex: 1,
+              child: Text("                    :", style: getFonts(12, Colors.black))),
+            
+            Expanded(flex: 1,
+              child: Text("${totalAmountString ?? '0.00'}", style: getFonts(12, Colors.black))),
+          ],
+        ),
+               Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(flex: 1,
+              child: Text("Discount", style: getFonts(12, Colors.black))),
+            
+            Expanded(flex: 1,
+              child: Text("                    :", style: getFonts(12, Colors.black))),
+           
+            Expanded(
+              flex: 1,
+              child: TextField(
+                controller: _discountControler,
+                style: getFonts(12, Colors.black),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: false,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+),
+
  SizedBox(height: 30,),
                GestureDetector(
                   onTap: (){
@@ -795,9 +835,9 @@ Future<void> get_Performa() async {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [Text("Total",style: getFonts(12, Colors.white),),
-                      SizedBox(height: 10,),
+                      
                       Text(":",style: getFonts(12, Colors.white),),
-                      Text("5000",style: getFonts(12, Colors.white),),
+                      Text("${(double.tryParse(totalAmountString) ?? 0.0) - (double.tryParse(_discountControler.text) ?? 0.0)}",style: getFonts(12, Colors.white),),
                       ],
                     ),
                      ),
