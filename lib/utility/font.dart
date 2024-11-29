@@ -4,6 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 TextStyle getFonts (double fontsize,Color color){
   return GoogleFonts.poppins(fontWeight: FontWeight.w600,fontSize: fontsize ,color:color );
 }
+TextStyle searchFonts (double fontsize,Color color){
+  return GoogleFonts.poppins(fontWeight: FontWeight.w400,fontSize: fontsize ,color:color );
+}
+TextStyle formFonts (double fontsize,Color color){
+  return GoogleFonts.poppins(fontWeight: FontWeight.w500,fontSize: fontsize ,color:color );
+}
 TextStyle appbarFonts (double fontsize,Color color){
   return GoogleFonts.poppins(fontWeight: FontWeight.w700,fontSize: fontsize ,color:color );
 }

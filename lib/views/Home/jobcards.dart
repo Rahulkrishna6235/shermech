@@ -186,38 +186,31 @@ String query = """
           padding: const EdgeInsets.only(top: 20),
           child: Text("JOBCARDS",style: appbarFonts(18, Colors.white)),
         )),
-        leading: Builder(
-          builder: (context) => InkWell(
-            onTap: () {
-              Scaffold.of(context).openDrawer();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Container(
-                child: Image.asset("assets/images/Menu (2).png",scale: 1.8,),
-              ),
-            ),
-          ),
-        ),
+        leading: Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back_ios_new_sharp,color: Colors.white,size: 15,)),
+      ),
        
         actions: [
           Padding(
-            padding: const EdgeInsets.only(top: 15),
+            padding: const EdgeInsets.only(top: 20),
             child: Row(children: [
               GestureDetector(
                 onTap: (){
                   Navigator.push(context, MaterialPageRoute(builder: (_) => Newjobcard()));
                 },
                 child: Container(
-                  width: 20,height: 22,
+                  width: 18,height: 18,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: Colors.white,width: 2)
                   ),
-                  child: Center(child: Icon(Icons.add,color: Colors.white,size: 17,)),
+                  child: Center(child: Icon(Icons.add,color: Colors.white,size: 15,)),
                 ),
               ),
-            IconButton(onPressed: (){},  icon: FaIcon(FontAwesomeIcons.user,color: Colors.white,))
+            IconButton(onPressed: (){},  icon: FaIcon(FontAwesomeIcons.user,color: Colors.white,size: 16,))
             ],),
           )
         ],
@@ -404,7 +397,7 @@ String query = """
                        child: Row(
                         children: [
                           _listcontents("JOBCARD NO"),
-                        Expanded(flex: 3, child: Text(" : ${jobcardList[index]['id']} ")),
+                        Expanded(flex: 3, child: Text(" : ${jobcardList[index]['jobcardno']} ")),
                         ],
                        ),
                      ),

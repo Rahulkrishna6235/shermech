@@ -952,3 +952,244 @@ class _AutoCompleteWithFutureBuilderState
 //       });
 //     }
 //    }
+
+// child: Container(
+//                   width: 100,height: 40,
+//                   decoration: BoxDecoration(
+//                     borderRadius: BorderRadius.circular(20),
+//                     color: Appcolors().maincolor
+//                   ),
+//                   child: Text("Apply"),
+//                 ),
+//  import 'dart:io';
+// import 'package:pdf/pdf.dart';
+// import 'package:pdf/widgets.dart' as pw;
+// import 'package:path_provider/path_provider.dart';
+
+// Future<File> generateInvoice(List<Map<String, dynamic>> reportList) async {
+//   final pdf = pw.Document();
+
+//   // Add the first page with table and invoice data
+//   pdf.addPage(
+//     pw.Page(
+//       build: (pw.Context context) {
+//         return pw.Column(
+//           crossAxisAlignment: pw.CrossAxisAlignment.start,
+//           children: [
+//             // Title of the Report (Invoice)
+//             pw.Text("JobCard Report", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, font: pw.Font.courier())),
+//             pw.SizedBox(height: 20),
+
+//             // Table with the report data (list of jobs)
+      
+
+//             pw.SizedBox(height: 30), // Space between table and invoice details
+
+//             // Invoice details, placed to the right side of the table
+//             pw.Row(
+//               crossAxisAlignment: pw.CrossAxisAlignment.start,
+//               children: [
+//                 // Left side: Job Card Table
+//                 pw.Expanded(
+//                   flex: 3,
+//                   child: pw.Column(
+//                     crossAxisAlignment: pw.CrossAxisAlignment.start,
+//                     children: [
+//                       // Invoice Title
+//                       pw.Text("Invoice", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+//                       pw.SizedBox(height: 10),
+
+//                       // Dynamically fetch customer and job card data from the first entry in reportList
+//                       pw.Text("Customer Name: ${reportList.isNotEmpty ? reportList[0]['customername'] ?? '' : ''}", style: pw.TextStyle(fontSize: 16)),
+//                       pw.Text("Job Card No: ${reportList.isNotEmpty ? reportList[0]['jobcardno'] ?? '' : ''}", style: pw.TextStyle(fontSize: 16)),
+//                       pw.Text("Model: ${reportList.isNotEmpty ? reportList[0]['model'] ?? '' : ''}", style: pw.TextStyle(fontSize: 16)),
+//                       pw.Text("Register No: ${reportList.isNotEmpty ? reportList[0]['registerno'] ?? '' : ''}", style: pw.TextStyle(fontSize: 16)),
+//                       pw.SizedBox(height: 20),
+//                       pw.Text("Thank you for your business!", style: pw.TextStyle(fontSize: 16)),
+//                     ],
+//                   ),
+//                 ),
+
+//                 // Right side: Invoice Information or Additional Info (such as Invoice No and Date)
+//                 pw.Expanded(
+//                   flex: 2,
+//                   child: pw.Column(
+//                     crossAxisAlignment: pw.CrossAxisAlignment.start,
+//                     children: [
+//                       // Invoice Info Section
+//                       pw.Text("Invoice No: INV-123456", style: pw.TextStyle(fontSize: 16)),
+//                       pw.Text("Date: ${DateTime.now().toLocal().toString().split(' ')[0]}", style: pw.TextStyle(fontSize: 16)),
+//                       pw.Text("Due Date: ${DateTime.now().toLocal().add(Duration(days: 7)).toString().split(' ')[0]}", style: pw.TextStyle(fontSize: 16)),
+//                     ],
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         );
+//       },
+//     ),
+//   );
+
+//   // Save the generated PDF to the app's document directory
+//   final outputDirectory = await getApplicationDocumentsDirectory();
+//   final file = File("${outputDirectory.path}/jobcard_report.pdf");
+//   await file.writeAsBytes(await pdf.save());
+//   return file;
+// }
+// Future<File> generateInvoiceUsingControllerData() async {
+//   final pdf = pw.Document();
+
+//   // Check if any field is empty (basic validation)
+//   if (_jobcardnoController.text.isEmpty || _customernameController.text.isEmpty) {
+//     return Future.error("Please enter the necessary data before generating the invoice.");
+//   }
+
+//   // Create a new page for the invoice
+//   pdf.addPage(
+//     pw.Page(
+//       build: (pw.Context context) {
+//         return pw.Column(
+//           crossAxisAlignment: pw.CrossAxisAlignment.start,
+//           children: [
+//             // Title of the Invoice
+//             pw.Text("JobCard Invoice", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+//             pw.SizedBox(height: 20),
+
+//             // Customer Information Section
+//             pw.Text("Customer Information", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+//             pw.SizedBox(height: 5),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Customer Name: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_customernameController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Location: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_locationController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Mobile: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_mobileController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.SizedBox(height: 15),
+
+//             // Vehicle Information Section
+//             pw.Text("Vehicle Information", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+//             pw.SizedBox(height: 5),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Job Card No: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_jobcardnoController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Model: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_modelController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Register No: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_registernoController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Chassis No: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_chassisnoController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.SizedBox(height: 15),
+
+//             // Technician Information Section
+//             pw.Text("Technician Information", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+//             pw.SizedBox(height: 5),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Technician: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_technicionController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Technician Voice: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_technicianvoiceController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.SizedBox(height: 15),
+
+//             // Arrival and Delivery Date Section
+//             pw.Text("Dates", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+//             pw.SizedBox(height: 5),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Arrival Date: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_ariveDateController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Delivery Date: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text(_deliverDateController.text, style: pw.TextStyle(fontSize: 16)),
+//               ],
+//             ),
+//             pw.SizedBox(height: 20),
+
+//             // Invoice Details Section
+//             pw.Text("Invoice Details", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+//             pw.SizedBox(height: 5),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Invoice No: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text("INV-123456", style: pw.TextStyle(fontSize: 16)), // Static Invoice No, you can make it dynamic
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Date: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text("${DateTime.now().toLocal().toString().split(' ')[0]}", style: pw.TextStyle(fontSize: 16)), // Current Date
+//               ],
+//             ),
+//             pw.Row(
+//               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+//               children: [
+//                 pw.Text("Due Date: ", style: pw.TextStyle(fontSize: 16)),
+//                 pw.Text("${DateTime.now().toLocal().add(Duration(days: 7)).toString().split(' ')[0]}", style: pw.TextStyle(fontSize: 16)), // 7 Days from the current date
+//               ],
+//             ),
+//             pw.SizedBox(height: 20),
+
+//             // Thank You Note
+//             pw.Text("Thank you for your business!", style: pw.TextStyle(fontSize: 16)),
+//           ],
+//         );
+//       },
+//     ),
+//   );
+
+//   // Save the generated PDF to the app's document directory
+//   final outputDirectory = await getApplicationDocumentsDirectory();
+//   final file = File("${outputDirectory.path}/jobcard_invoice.pdf");
+//   await file.writeAsBytes(await pdf.save());
+//   return file;
+// }

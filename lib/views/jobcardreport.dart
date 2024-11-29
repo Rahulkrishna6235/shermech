@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sher_mech/utility/colorss.dart';
@@ -8,9 +10,10 @@ import 'package:intl/intl.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
 import 'package:sher_mech/utility/font.dart';
-import 'package:sher_mech/views/pdfviewer.dart';
+import 'package:sher_mech/views/pdf_%20and%20_invoice/pdf.dart';
 import 'package:sher_mech/views/vehiclemake.dart';
-
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
 
 class Jobcardreport extends StatefulWidget {
   const Jobcardreport({super.key});
@@ -25,10 +28,12 @@ class _JobcardreportState extends State<Jobcardreport> {
 bool isSearchFieldVisible = false;
   bool isLoading = false;
   final TextEditingController _searchController = TextEditingController();
+   final TextEditingController _filterController = TextEditingController();
+  String filterCriteria = 'Name'; 
 
   DateTime? _fromDate;
   DateTime? _toDate;
-  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+  final DateFormat _dateFormat = DateFormat('MM-dd-yyyy');
 
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
     final DateTime? selectedDate = await showDatePicker(
@@ -78,7 +83,7 @@ bool isSearchFieldVisible = false;
         List<dynamic> data = json.decode(result);
         List<Map<String, dynamic>> tempList = List<Map<String, dynamic>>.from(data);
 
-        final DateFormat dateFormat = DateFormat('yyyy-MM-dd');  
+        final DateFormat dateFormat = DateFormat('MM-dd-yyyy');  
         if (_fromDate != null && _toDate != null) {
           tempList = tempList.where((jobCard) {
             try {
@@ -94,7 +99,7 @@ bool isSearchFieldVisible = false;
 
         setState(() {
           reportlist = tempList;
-                    // filter_reportlist = List.from(reportlist);
+                     //filter_reportlist = List.from(reportlist);
 
         });
       } else {
@@ -143,13 +148,57 @@ bool isSearchFieldVisible = false;
       filter_reportlist = reportlist
           .where((jobreport) =>
               jobreport['customername']?.toLowerCase().contains(query) ?? false ||
-              jobreport['id'].toString().toLowerCase().contains(query))
+              jobreport['jobcardno'].toString().toLowerCase().contains(query))
           .toList(); 
            reportlist =  filter_reportlist;     
           }
     );
  }
+Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
+  final pdf = pw.Document();
+  pdf.addPage(pw.Page(
+    build: (pw.Context context) {
+      return pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text("JobCard Report", style: pw.TextStyle(fontSize: 24, font: pw.Font.courier())),
+          pw.SizedBox(height: 20),
+          pw.Table.fromTextArray(
+            context: context,
+            data: <List<String>>[
+              ['SN', 'Booking Date', 'JC No', 'Name'], // Table headers
+              ...reportList.map((report) => [
+                report['id'].toString(),
+                report['arivedate'] ?? '',
+                report['jobcardno'] ?? '',
+                report['customername'] ?? '',
+              ]),
+            ],
+          ),
+        ],
+      );
+    },
+  ));
 
+  final outputDirectory = await getApplicationDocumentsDirectory();
+  final file = File("${outputDirectory.path}/jobcard_report.pdf");
+  await file.writeAsBytes(await pdf.save());
+  return file;
+}
+
+ Future<void> _generateAndViewPDF() async {
+    if (reportlist.isEmpty) {
+      Fluttertoast.showToast(msg: 'No data available to generate PDF');
+      return;
+    }
+    File pdfFile = await generatePDF(reportlist);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PDFScreen(path: pdfFile.path),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -185,22 +234,15 @@ bool isSearchFieldVisible = false;
             ),
           ),
         ),
-        leading: Builder(
-          builder: (context) => InkWell(
-            onTap: () {
-              Scaffold.of(context).openDrawer();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Container(
-                child: Image.asset("assets/images/Menu (2).png",scale: 1.8,),
-              ),
-            ),
-          ),
-        ),
+        leading: Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back_ios_new_sharp,color: Colors.white,size: 15,)),
+      ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(top: 15),
+          padding: const EdgeInsets.only(top: 20),
             child: Row(
               children: [
                 IconButton(
@@ -213,11 +255,11 @@ bool isSearchFieldVisible = false;
                 }
               });
                     },
-                  icon: const Icon(Icons.search, color: Colors.white),
+                  icon: const Icon(Icons.search, color: Colors.white,size: 18,),
                 ),
                 IconButton(
                   onPressed: () {},
-                  icon: const FaIcon(FontAwesomeIcons.user, color: Colors.white),
+                  icon: const FaIcon(FontAwesomeIcons.user, color: Colors.white,size: 17,),
                 ),
               ],
             ),
@@ -285,7 +327,7 @@ bool isSearchFieldVisible = false;
                   ),
                   child: IconButton(
                     onPressed: () {
-                     // PDFViewerScreen(path: )
+                     _generateAndViewPDF();
                     },
                     icon: const Icon(Icons.download_rounded, color: Colors.white),
                   ),
@@ -335,7 +377,7 @@ bool isSearchFieldVisible = false;
                       children: [
                         Expanded(child: Center(child: Text("$sn"))),
                         Expanded(child: Center(child: Text(reportlist[index]['arivedate']?.toString() ?? ""))),
-                        Expanded(child: Center(child: Text(reportlist[index]['id']?.toString() ?? ""))),
+                        Expanded(child: Center(child: Text(reportlist[index]['jobcardno']?.toString() ?? ""))),
                         Expanded(child: Center(child: Text(reportlist[index]['customername']?.toString() ?? ""))),
                       ],
                     ),
@@ -359,16 +401,89 @@ bool isSearchFieldVisible = false;
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 40),
-        child: Container(
-          width: 48,
-          height: 52,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26),
-            color: Appcolors().maincolor,
+        child: GestureDetector(
+          onTap: (){
+            _showFilterBottomSheet(context);
+          },
+          child: Container(
+            width: 48,
+            height: 52,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(26),
+              color: Appcolors().maincolor,
+            ),
+            child: Icon(Icons.filter_list_alt, color: Colors.white),
           ),
-          child: Icon(Icons.filter_list_alt, color: Colors.white),
         ),
       ),
     );
+
+    
   }
+  void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Filter by:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Radio<String>(
+                    value: 'Name',
+                    groupValue: filterCriteria,
+                    onChanged: (value) {
+                      setState(() {
+                        filterCriteria = value!;
+                      });
+                    },
+                  ),
+                  Text('Name'),
+                  Radio<String>(
+                    value: 'Jobcard No',
+                    groupValue: filterCriteria,
+                    onChanged: (value) {
+                      setState(() {
+                        filterCriteria = value!;
+                      });
+                    },
+                  ),
+                  Text('Jobcard No'),
+                ],
+              ),
+              TextField(
+                controller: _filterController,
+                decoration: InputDecoration(
+                  hintText: 'Enter ${filterCriteria == 'Name' ? 'customer name' : 'jobcard number'}...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 10),
+              Center(
+               child: GestureDetector(
+                onTap: () {
+                  _filterSearchResults(_filterController.text);
+                    Navigator.pop(context);
+                },
+                 child: Container(
+                    width: 100,height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Appcolors().maincolor
+                    ),
+                    child: Center(child: Text("Apply",style: getFonts(14, Colors.white),)),
+                 ),
+               )
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 }

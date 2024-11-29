@@ -180,12 +180,12 @@ int? _selectedSiNo;
     return false;
   }
 
-  Future<bool> updateVehiclemodal(int ID, String modaltitle,String modalsubtitle) async {
+  Future<bool> updateVehiclemodal(int id, String modaltitle,String modalsubtitle) async {
     setState(() {
       isLoading = true;
     });
 
-String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtitle = '$modalsubtitle' WHERE ID = $ID";
+String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtitle = '$modalsubtitle' WHERE ID = $id";
 
     try {
       bool isConnected = await connect();
@@ -287,20 +287,15 @@ Future<void> getData() async {
             child: Text("Vehicle Modal", style: appbarFonts(18, Colors.white)),
           ),
         ),
-        leading: Builder(
-          builder: (context) => InkWell(
-            onTap: () {
-              Scaffold.of(context).openDrawer();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Image.asset("assets/images/Menu (2).png", scale: 1.8),
-            ),
-          ),
-        ),
+        leading: Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back_ios_new_sharp,color: Colors.white,size: 15,)),
+      ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(top: 15),
+            padding: const EdgeInsets.only(top: 20),
             child: Row(
               children: [
                 GestureDetector(
@@ -308,20 +303,20 @@ Future<void> getData() async {
                     adaPopup();
                   },
                   child: Container(
-                    width: 20,
-                    height: 22,
+                    width: 18,
+                    height: 18,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: Center(
-                      child: Icon(Icons.add, color: Colors.white, size: 17),
+                      child: Icon(Icons.add, color: Colors.white, size: 15),
                     ),
                   ),
                 ),
                 IconButton(
                   onPressed: () {},
-                  icon: FaIcon(FontAwesomeIcons.user, color: Colors.white),
+                  icon: FaIcon(FontAwesomeIcons.user, color: Colors.white,size: 17,),
                 ),
               ],
             ),
@@ -423,9 +418,7 @@ Future<void> getData() async {
                               color: Appcolors().scafoldcolor,
                               onSelected: (value) {
                                  if (value == 'Edit') {
-                            // Navigator.push(context, MaterialPageRoute(builder: (_) => Hdhdh(id: index,modalsubtitle: vehiclemodalList[index]['modelsubtitle'],modeletitle: vehiclemodalList[index]['modelsubtitle'], )));
-                                  //updateVehiclemodal(vehiclemodalList[index]['ID'], vehiclemodalList[index]['modeltitle'], vehiclemodalList[index]['modelsubtitle']);
-                                   adaPopup(title:vehiclemodalList[index]["modeltitle"],subtitle: vehiclemodalList[index]["modelsubtitle"],id:vehiclemodalList[index]["ID"] );  
+                                   adaPopup(title:vehiclemodalList[index]["modeletitle"],subtitle: vehiclemodalList[index]["modalsubtitle"],id:vehiclemodalList[index]["ID"] );  
                                       } else if (value == 'Delete') {
                                         deleteVehicle(filteredVehicleList[index]["ID"]); 
                                       }

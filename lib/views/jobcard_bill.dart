@@ -103,6 +103,7 @@ Future<void> get_Performa() async {
           setState(() {
             performaList = [];
             //filteredJobcardList = [];
+            performaList.clear();
           });
         }
       } else {
@@ -192,19 +193,12 @@ Future<void> get_Performa() async {
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Appcolors().maincolor,
-      leading: Builder(
-          builder: (context) => InkWell(
-            onTap: () {
-              Scaffold.of(context).openDrawer();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Container(
-                child: Image.asset("assets/images/Menu (2).png",scale: 1.8,),
-              ),
-            ),
-          ),
-        ),
+      leading: Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back_ios_new_sharp,color: Colors.white,size: 15,)),
+      ),
         title: Center(child: Padding(
           padding: const EdgeInsets.only(top: 20),
           child: Text("JOBCARD BILL",style: appbarFonts(18, Colors.white),),
@@ -212,7 +206,7 @@ Future<void> get_Performa() async {
         actions: [
           Padding(
             padding: const EdgeInsets.only(top: 15),
-            child: IconButton(onPressed: (){},  icon: FaIcon(FontAwesomeIcons.user,color: Colors.white,)),
+            child: IconButton(onPressed: (){},  icon: FaIcon(FontAwesomeIcons.user,color: Colors.white,size: 17,)),
           )
         ],
       ),
@@ -233,7 +227,7 @@ Future<void> get_Performa() async {
                 Row(
                   children: [
                   
-                  Text("Jobcard No",style: getFonts(16, Colors.black),),
+                  Text("Jobcard No",style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
                 IntrinsicHeight(
@@ -289,9 +283,10 @@ Future<void> get_Performa() async {
                 Row(
                   children: [
                   
-                  Text("Date",style: getFonts(16, Colors.black),),
+                  Text("Date",style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
+                SizedBox(height: 10,),
                Container(
           height: 45,
                         width: 171,
@@ -340,7 +335,7 @@ Future<void> get_Performa() async {
             ),
           )
                        ],) ,
-                       SizedBox(height: 10,),
+                       SizedBox(height: 20,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -354,9 +349,10 @@ Future<void> get_Performa() async {
                 Row(
                   children: [
                   
-                  Text("Jobcard Date",style: getFonts(16, Colors.black),),
+                  Text("Jobcard Date",style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
+                SizedBox(height: 10,),
                Container(
           height: 45,
                         width: 171,
@@ -406,7 +402,7 @@ Future<void> get_Performa() async {
             ),
           )
                        ],) ,
-                       SizedBox(height: 10,),
+                       SizedBox(height: 20,),
                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _newjobtxtShortfield("Model", _modalController),
@@ -414,7 +410,7 @@ Future<void> get_Performa() async {
 
                         ],
                        ),
-                       SizedBox(height: 10,),
+                       SizedBox(height: 20,),
                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _newjobtxtShortfield("Mechanic", _machanicController),
@@ -422,7 +418,7 @@ Future<void> get_Performa() async {
 
                         ],
                        ),
-                       SizedBox(height: 10,),
+                       SizedBox(height: 20,),
                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _newjobtxtShortfield("JC start", _jc_finishController),
@@ -430,7 +426,7 @@ Future<void> get_Performa() async {
 
                         ],
                        ),
-                       SizedBox(height: 10,),
+                       SizedBox(height: 20,),
                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _newjobtxtShortfield("Enigine No", _engineNoController),
@@ -438,7 +434,7 @@ Future<void> get_Performa() async {
 
                         ],
                        ),
-                       SizedBox(height: 16,),
+                       SizedBox(height: 20,),
                Padding(
                  padding: const EdgeInsets.only(right: 247),
                  child: Text("Customer Details", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 14,decoration: TextDecoration.underline, )),
@@ -448,7 +444,7 @@ Future<void> get_Performa() async {
                  padding: const EdgeInsets.only(left: 25),
                  child: _Nnewjobtxtfield("Name", _nameNoController),
                ),
-               SizedBox(height: 10,),
+               SizedBox(height: 20,),
                Padding(
                  padding: const EdgeInsets.only(left: 25),
                  child: Container(
@@ -456,7 +452,7 @@ Future<void> get_Performa() async {
                                crossAxisAlignment: CrossAxisAlignment.start,
                                children: [
                   Row(children: [
-                    Text("Address",style: getFonts(16, Colors.black),),
+                    Text("Address",style: formFonts(16, Colors.black),),
                     Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                   ],),
                   Container(
@@ -497,7 +493,7 @@ Future<void> get_Performa() async {
                              ),
                            ),
                ),
-               SizedBox(height: 16,),
+               SizedBox(height: 20,),
                Padding(
                  padding: const EdgeInsets.only(left: 25),
                  child: _Nnewjobtxtfield("Mobile", _phonenoNoController),
@@ -873,9 +869,10 @@ Future<void> get_Performa() async {
                 Row(
                   children: [
                   
-                  Text(textrow,style: getFonts(16, Colors.black),),
+                  Text(textrow,style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
+                SizedBox(height: 10,),
                 Container(
                         height: 45,
                         width: 171,
@@ -923,9 +920,10 @@ Future<void> get_Performa() async {
                 Row(
                   children: [
                   
-                  Text(textrow,style: getFonts(16, Colors.black),),
+                  Text(textrow,style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
+                SizedBox(height: 10,),
                 Container(
                         height: 45,
                         width: 171,
@@ -971,9 +969,10 @@ Future<void> get_Performa() async {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  Text(textrow,style: getFonts(16, Colors.black),),
+                  Text(textrow,style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
+                SizedBox(height: 10,),
                 Container(
                         height: 45,
                         width: 358,

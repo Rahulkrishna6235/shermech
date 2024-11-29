@@ -234,27 +234,20 @@ Future<bool> post_performa2() async {
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Appcolors().maincolor,
-      leading: Builder(
-          builder: (context) => InkWell(
-            onTap: () {
-              Scaffold.of(context).openDrawer();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Container(
-                child: Image.asset("assets/images/Menu (2).png",scale: 1.8,),
-              ),
-            ),
-          ),
-        ),
+      leading: Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: IconButton(onPressed: (){
+          Navigator.pop(context);
+        }, icon: Icon(Icons.arrow_back_ios_new_sharp,color: Colors.white,size: 15,)),
+      ),
         title: Center(child: Padding(
           padding: const EdgeInsets.only(top: 20),
           child: Text("PERFORMA INVOICE",style: appbarFonts(18, Colors.white),),
         )),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(top: 15),
-            child: IconButton(onPressed: (){},  icon: FaIcon(FontAwesomeIcons.user,color: Colors.white,)),
+            padding: const EdgeInsets.only(top: 20),
+            child: IconButton(onPressed: (){},  icon: FaIcon(FontAwesomeIcons.user,color: Colors.white,size: 17,)),
           )
         ],
       ),

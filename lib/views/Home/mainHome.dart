@@ -80,10 +80,10 @@ class _MainHomeState extends State<MainHome> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(top: 15),
+            padding: const EdgeInsets.only(top: 20),
             child: IconButton(
               onPressed: () {},
-              icon: FaIcon(FontAwesomeIcons.user, color: Colors.white),
+              icon: FaIcon(FontAwesomeIcons.user, color: Colors.white,size: 16,),
             ),
           )
         ],
