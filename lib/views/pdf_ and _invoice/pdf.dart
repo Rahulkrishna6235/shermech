@@ -1,9 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:path_provider/path_provider.dart';  // Add this to get application documents directory
+import 'package:path_provider/path_provider.dart';  
+//import 'package:share_plus/share_plus.dart';  // Import the share_plus package
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:sher_mech/utility/font.dart';
 
@@ -17,28 +17,20 @@ class PDFScreen extends StatefulWidget {
 }
 
 class _PDFScreenState extends State<PDFScreen> {
-  late PDFViewController _pdfViewController; // Declare the controller
+  late PDFViewController _pdfViewController; 
   int? _totalPages = 0;
   int _currentPage = 0;
 
   // Function to download the PDF
   Future<void> _downloadPDF() async {
     try {
-      // Get the application's document directory
       final directory = await getApplicationDocumentsDirectory();
-      
-      // Define the path for the new file
       final String newFilePath = "${directory.path}/downloaded_report.pdf";
       
-      // Get the original file from widget.path and copy it to the new path
       final File originalFile = File(widget.path);
-      
-      // Check if the original file exists
       if (await originalFile.exists()) {
-        await originalFile.copy(newFilePath);
+        await originalFile.copy(newFilePath);  // Copy the file to app's directory
         Fluttertoast.showToast(msg: "PDF downloaded successfully!");
-
-        // Optionally, you can navigate to the downloaded file or show a message
         print("File saved to: $newFilePath");
       } else {
         Fluttertoast.showToast(msg: "File not found.");
@@ -47,6 +39,26 @@ class _PDFScreenState extends State<PDFScreen> {
       Fluttertoast.showToast(msg: "Error saving the file: $e");
     }
   }
+Future<void> _sharePDF() async {
+  try {
+    // Use the file path that was passed to this widget
+    final String filePath = widget.path;
+    final File file = File(filePath);
+    
+    if (await file.exists()) {
+      // Create an XFile from the file path
+      //XFile xFile = XFile(filePath);
+      
+      // Share the file using the share_plus package
+      //await Share.shareXFiles([xFile], text: 'Check out this PDF!');
+    } else {
+      Fluttertoast.showToast(msg: "File not found for sharing.");
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "Error sharing the file: $e");
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +103,6 @@ class _PDFScreenState extends State<PDFScreen> {
               print('Page $page error: $error');
             },
             onViewCreated: (PDFViewController pdfViewController) {
-              // Initialize the controller here
               _pdfViewController = pdfViewController;
             },
           ),
@@ -101,16 +112,32 @@ class _PDFScreenState extends State<PDFScreen> {
         ],
       ),
       floatingActionButton: _totalPages != 0
-          ? FloatingActionButton.extended(
-              label: Text(
-                "Download",
-                style: getFonts(14, Colors.white),
-              ),
-              backgroundColor: Appcolors().maincolor,
-              onPressed: () {
-                _pdfViewController.setPage(_totalPages! ~/ 2);  // Now this should work
-                _downloadPDF();  // Call the download function
-              },
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // Download button
+                FloatingActionButton.extended(
+                  label: Text(
+                    "Download",
+                    style: getFonts(14, Colors.white),
+                  ),
+                  backgroundColor: Appcolors().maincolor,
+                  onPressed: () {
+                    _pdfViewController.setPage(_totalPages! ~/ 2);  // Optionally set the page to the middle
+                    _downloadPDF();  // Call the download function
+                  },
+                ),
+                SizedBox(height: 10),
+                // Share button
+                FloatingActionButton.extended(
+                  label: Text(
+                    "Share",
+                    style: getFonts(14, Colors.white),
+                  ),
+                  backgroundColor: Appcolors().maincolor,
+                  onPressed: _sharePDF,  // Call the share function
+                ),
+              ],
             )
           : Container(),
     );

@@ -161,17 +161,29 @@ String query = """
   }
 
   void _filterSearchResults() {
-    String query = _searchController.text.toLowerCase();
-    setState(() {
+  String query = _searchController.text.toLowerCase();
+
+  setState(() {
+    if (query.isEmpty) {
+      filteredJobcardList = List.from(jobcardList);
+    } else {
       filteredJobcardList = jobcardList.where((jobcard) {
-        return jobcard['customername'].toLowerCase().contains(query) ||
-               jobcard['id'].toString().toLowerCase().contains(query) || 
-               jobcard['arivedate'].toString().toLowerCase().contains(query) || 
-               jobcard['registerno'].toLowerCase().contains(query); 
+        return jobcard['customername']
+                .toLowerCase()
+                .contains(query) ||
+            jobcard['id'].toString().toLowerCase().contains(query) ||
+            jobcard['arivedate']
+                .toString()
+                .toLowerCase()
+                .contains(query) ||
+            jobcard['registerno']
+                .toLowerCase()
+                .contains(query);
       }).toList();
-      jobcardList=filteredJobcardList;
-    });
-  }
+    }
+  });
+}
+
 
  
   @override
@@ -348,7 +360,11 @@ String query = """
                         onSelected: (value) {
                           if (value == 'Edit') {
                            //adaPopup(jobcardno: jobcardList[index]['jobcardno'],cusname: jobcardList[index]['customername'],modal: jobcardList[index]['modal'],register: jobcardList[index]['registrationno'],remark: jobcardList[index]['remark']);
-                   
+                          Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Newjobcard(jobCardId: jobcardList[index]["id"]),
+        ),);
                           } else if (value == 'Delete') {
                             delete_jobcard(jobcardList[index]['id']);
                           }

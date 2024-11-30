@@ -33,7 +33,7 @@ bool isSearchFieldVisible = false;
 
   DateTime? _fromDate;
   DateTime? _toDate;
-  final DateFormat _dateFormat = DateFormat('MM-dd-yyyy');
+  final DateFormat _dateFormat = DateFormat('MM/dd/yyyy');
 
   Future<void> _selectDate(BuildContext context, bool isFromDate) async {
     final DateTime? selectedDate = await showDatePicker(
@@ -58,7 +58,7 @@ bool isSearchFieldVisible = false;
   void initState() {
     super.initState();
     connectAndGetData();
-  //  _searchController.addListener(_filterSearchResults());
+  
   }
 
   Future<void> connectAndGetData() async {
@@ -69,8 +69,9 @@ bool isSearchFieldVisible = false;
       Fluttertoast.showToast(msg: 'Database connection failed');
     }
   }
+  List<Map<String, dynamic>> originalReportList = []; 
    Future<void> getData_reportcard() async {
- String query = 'SELECT * FROM Newjobcard ORDER BY id';
+  String query = 'SELECT * FROM Newjobcard ORDER BY id';
   setState(() {
     isLoading = true;
   });
@@ -81,26 +82,35 @@ bool isSearchFieldVisible = false;
       String result = await sqlConnection.getData(query);
       if (result.isNotEmpty) {
         List<dynamic> data = json.decode(result);
+        originalReportList = List<Map<String, dynamic>>.from(data); // Store the original data
+        reportlist = List<Map<String, dynamic>>.from(data);
         List<Map<String, dynamic>> tempList = List<Map<String, dynamic>>.from(data);
 
-        final DateFormat dateFormat = DateFormat('MM-dd-yyyy');  
+        final DateFormat dateFormat = DateFormat('MM/dd/yyyy');  
+
         if (_fromDate != null && _toDate != null) {
           tempList = tempList.where((jobCard) {
             try {
-              DateTime jobCardDate = dateFormat.parse(jobCard['arivedate']?.toString() ?? '');
+              String ariveDateStr = jobCard['arivedate']?.toString() ?? '';
+              print("Attempting to parse: $ariveDateStr");
+
+              DateTime jobCardDate = dateFormat.parse(ariveDateStr);
+              print("Parsed Date: $jobCardDate");
+
               return jobCardDate.isAfter(_fromDate!.subtract(Duration(days: 1))) &&
                      jobCardDate.isBefore(_toDate!.add(Duration(days: 1)));
             } catch (e) {
               print("Error parsing date: ${jobCard['arivedate']}");
-              return false; 
+              return false;
             }
           }).toList();
         }
 
         setState(() {
           reportlist = tempList;
-                     //filter_reportlist = List.from(reportlist);
-
+          if (tempList.isEmpty) {
+            Fluttertoast.showToast(msg: 'No data found for the selected date range');
+          }
         });
       } else {
         Fluttertoast.showToast(msg: 'No data found');
@@ -142,18 +152,27 @@ bool isSearchFieldVisible = false;
   }
 }
  void _filterSearchResults(String query) {
-    //  = _searchController.text.toLowerCase();
-    setState(() {
-      
-      filter_reportlist = reportlist
-          .where((jobreport) =>
-              jobreport['customername']?.toLowerCase().contains(query) ?? false ||
-              jobreport['jobcardno'].toString().toLowerCase().contains(query))
-          .toList(); 
-           reportlist =  filter_reportlist;     
-          }
-    );
- }
+  setState(() {
+    if (query.isEmpty) {
+      // Reset to the full list when the query is empty
+      reportlist = List.of(originalReportList);  // Ensure you have the original data saved
+    } else {
+      // Filter the report list based on the query and criteria
+      filter_reportlist = reportlist.where((jobreport) {
+        if (filterCriteria == 'Name') {
+          return jobreport['customername']?.toLowerCase().contains(query) ?? false;
+        } else if (filterCriteria == 'Jobcard No') {
+          return jobreport['jobcardno']?.toString().toLowerCase().contains(query) ?? false;
+        }
+        return false;
+      }).toList();
+      reportlist = filter_reportlist;
+    }
+  });
+}
+
+
+ 
 Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
   final pdf = pw.Document();
   pdf.addPage(pw.Page(
@@ -166,7 +185,7 @@ Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
           pw.Table.fromTextArray(
             context: context,
             data: <List<String>>[
-              ['SN', 'Booking Date', 'JC No', 'Name'], // Table headers
+              ['id', 'Booking Date', 'JC No', 'Name'], // Table headers
               ...reportList.map((report) => [
                 report['id'].toString(),
                 report['arivedate'] ?? '',
@@ -184,6 +203,7 @@ Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
   final file = File("${outputDirectory.path}/jobcard_report.pdf");
   await file.writeAsBytes(await pdf.save());
   return file;
+  
 }
 
  Future<void> _generateAndViewPDF() async {

@@ -19,7 +19,8 @@ import 'package:path_provider/path_provider.dart';
 // import 'package:pdf/widgets.dart' as pw;
 // import 'package:printing/printing.dart';
 class Newjobcard extends StatefulWidget {
-  const Newjobcard({super.key});
+  final int? jobCardId; // Add this to pass job card ID
+  const Newjobcard({Key? key, this.jobCardId}) : super(key: key);
 
   @override
   State<Newjobcard> createState() => _NewjobcardState();
@@ -51,6 +52,58 @@ class _NewjobcardState extends State<Newjobcard> {
 
   final _formKey = GlobalKey<FormState>();
   int? _selectedSiNo; 
+bool isEditing = false;
+  @override
+  void initState() {
+    super.initState();
+    // If jobCardId is provided (i.e., for editing), fetch the data
+    if (widget.jobCardId != null) {
+      isEditing = true;
+      _fetchJobCardData(widget.jobCardId!);
+    }
+  }
+ Future<void> _fetchJobCardData(int jobCardId) async {
+    String query = 'SELECT * FROM Newjobcard WHERE id = $jobCardId';
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      bool isConnected = await connect();
+      if (isConnected) {
+        String result = await sqlConnection.getData(query);
+        if (result.isNotEmpty) {
+          Map<String, dynamic> data = json.decode(result)[0]; // Assuming one result
+          
+          // Populate the form controllers with data
+          _jobcardnoController.text = data['jobcardno'];
+          _customernameController.text = data['customername'];
+          _locationController.text = data['location'];
+          _mobileController.text = data['mobilenumber'];
+          _makeController.text = data['make'];
+          _modelController.text = data['model'];
+          _registernoController.text = data['registerno'];
+          _adressnoController.text = data['adress'];
+          _technicionController.text = data['Technicians'];
+          _ariveDateController.text = data['arivedate'];
+          _deliverDateController.text = data['deliverdate'];
+          _customervoiceController.text = data['customervoice'];
+          _technicianvoiceController.text = data['technicianvoke'];
+          _chassisnoController.text = data['chassisno'];
+          _kilometerController.text = data['kilometer'];
+          _jobadvisorController.text = data['selectjobadvisor'];
+        }
+      } else {
+        Fluttertoast.showToast(msg: 'Database connection failed');
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Error: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
  Future<bool> post_newjobcard() async {
   if (_formKey.currentState != null && _formKey.currentState!.validate()) {
@@ -173,39 +226,54 @@ class _NewjobcardState extends State<Newjobcard> {
       });
     }
   }
-Future<bool> update_jobcard(
-    String date,String Jobcardno,
-    String Cusname,String Model,String Register,int siNo, 
-    ) async {
+
+Future update_jobcard(
+    String ariveDate,
+    String jobcardno,
+    String customername,
+    String model,
+    String registerno,
+   // int siNo, 
+    int jobCardId, 
+) async {
+  if (_formKey.currentState != null && _formKey.currentState!.validate()) {
     setState(() {
       isLoading = true;
     });
-
-String query = """
-  UPDATE NewJobcard 
-  SET 
-    arivedate = '$date}',
-    id = '$Jobcardno',
-    customername = '$Cusname',
-    model = '$Model',
-    registerno = '$Register',
-    
-  WHERE 
-    id = $siNo
-""";
+    String Jobcardno = jobcardno.replaceAll("'", "''");
+    String Customername = customername.replaceAll("'", "''");
+    String Model = model.replaceAll("'", "''");
+    String Register = registerno.replaceAll("'", "''");
+    String Date_arive = ariveDate.replaceAll("'", "''");
 
     try {
       bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.writeData(query);
-        Map<dynamic, dynamic> valueMap = json.decode(result);
-        if (valueMap['affectedRows'] == 1) {
-          Fluttertoast.showToast(msg: "Updated successfully");
-          await getData_jobcard(); 
-          return true;
-        } else {
-          Fluttertoast.showToast(msg: "Failed to update");
-        }
+      if (!isConnected) {
+        Fluttertoast.showToast(msg: 'Database connection failed');
+        setState(() {
+          isLoading = false;
+        });
+        return false;
+      }
+
+      String query = """
+        UPDATE Newjobcard 
+        SET 
+          customername = '$Customername', model = '$Model', registerno = '$Register', 
+          arivedate = '$Date_arive' 
+        WHERE id = $jobCardId
+      """;
+
+      String result = await sqlConnection.writeData(query);
+      Map<String, dynamic> valueMap = json.decode(result);
+
+      if (valueMap['affectedRows'] == 1) {
+        Fluttertoast.showToast(msg: "Updated successfully");
+        await getData_jobcard();  
+        Navigator.pop(context);  
+        return true;
+      } else {
+        Fluttertoast.showToast(msg: "Failed to update");
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Error: $e");
@@ -217,6 +285,7 @@ String query = """
 
     return false;
   }
+}
 
 
   Future<File> generateInvoice(List<Map<String, dynamic>> jobcardList) async {
@@ -731,10 +800,19 @@ Future<void> _generateinvoice() async {
                   GestureDetector(
                   onTap: ()async{
                     //post_newjobcard();
+                   // int siNo=_selectedSiNo?? 0;
                    bool success=true;
-                    if (_selectedSiNo != null) {
+                    if (isEditing) {
                      // success = await updateVehicle(_selectedSiNo!, _vehiclenameController.text);
-                    success =await update_jobcard(_ariveDateController.text, _jobcardnoController.text, _customernameController.text, _modelController.text, _registernoController.text, _selectedSiNo!);
+                    success =await update_jobcard(
+                       _ariveDateController.text, 
+        _jobcardnoController.text,  
+        _customernameController.text, 
+        _modelController.text, 
+        _registernoController.text, 
+        //siNo ,
+        widget.jobCardId!,
+                      );
                     } else {
                       success = await post_newjobcard();
                     }
@@ -748,7 +826,7 @@ Future<void> _generateinvoice() async {
                       borderRadius: BorderRadius.circular(5),
                        color: Color(0xFF0A1EBE), 
                     ),
-                    child: Center(child: Text("Create JobCard",style: getFonts(12, Colors.white)),
+                    child: Center(child: Text(isEditing ? "Update JobCard" : "Create JobCard",style: getFonts(12, Colors.white)),
                    ) ),
                 ),
                 //_Botton("Create JobCard"),

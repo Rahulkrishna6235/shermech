@@ -260,192 +260,198 @@ Future<bool> post_performa2() async {
             
             children: [
               SizedBox(height: 20,),
-              Padding(
-                            padding: const EdgeInsets.only(right: 26),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+             Container(
+              padding: EdgeInsets.only(right: 18),
+              child: Column(
                 children: [
-                  Row(
-                    children: [
-                    
-                    Text("Jobcard No",style: getFonts(16, Colors.black),),
-                    Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
-                  ],),
-                IntrinsicHeight(
-            child: Container(
-              constraints: BoxConstraints(
-                minHeight: 45,
-                maxWidth: 171, 
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.white,
-                border: Border.all(color: Appcolors().searchTextcolor),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-          SizedBox(width: 5),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: EasyAutocomplete(
-                controller: _jobcardnocontroller,
-                suggestions: JobcardbillList
-                    .map((jobcard) => jobcard['jobcardno'].toString())
-                    .toList(),
-                onSubmitted: (value) {
-                  onJobcardSelected(value);
-                },
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true, // Make the input compact
-                  contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
-                ),
-              ),
-            ),
-          ),
+                   Row(
+                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                     children: [
+                       Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Row(
+                                       children: [
+                                       
+                                       Text("Jobcard No",style: formFonts(16, Colors.black),),
+                                       Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+                                     ],),
+                                     SizedBox(height: 10,),
+                                   IntrinsicHeight(
+                               child: Container(
+                                 constraints: BoxConstraints(
+                                   minHeight: 45,
+                                   maxWidth: 171, 
+                                 ),
+                                 decoration: BoxDecoration(
+                                   borderRadius: BorderRadius.circular(5),
+                                   color: Colors.white,
+                                   border: Border.all(color: Appcolors().searchTextcolor),
+                                 ),
+                                 child: Row(
+                                   crossAxisAlignment: CrossAxisAlignment.center,
+                                   children: [
+                             SizedBox(width: 5),
+                             Expanded(
+                               child: Padding(
+                                 padding: const EdgeInsets.only(bottom: 2),
+                                 child: EasyAutocomplete(
+                                   controller: _jobcardnocontroller,
+                                   suggestions: JobcardbillList
+                                       .map((jobcard) => jobcard['jobcardno'].toString())
+                                       .toList(),
+                                   onSubmitted: (value) {
+                                     onJobcardSelected(value);
+                                   },
+                                   decoration: const InputDecoration(
+                                     border: InputBorder.none,
+                                     isDense: true, // Make the input compact
+                                     contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
+                                   ),
+                                 ),
+                               ),
+                             ),
+                                   ],
+                                 ),
+                               ),
+                             ),
+                             
+                                           
+                                   ],
+                                 ),
+                                 SizedBox(height: 20,),
+                       Container(
+                         child: Column(
+                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                       children: [
+                                         Row(
+                                           children: [
+                                           
+                                           Text("Date",style: formFonts(16, Colors.black),),
+                                           Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+                                         ],),
+                                         SizedBox(height: 10,),
+                                        Container(
+                                   height: 45,
+                                                 width: 171,
+                                   decoration: BoxDecoration(
+                                     borderRadius: BorderRadius.circular(5),
+                                   ),
+                                   child: TextField(
+                                     onTap: () async {
+                                       DateTime? selectedDate = await showDatePicker(
+                                         context: context,
+                                         initialDate: DateTime.now(),
+                                         firstDate: DateTime(1900), 
+                                         lastDate: DateTime(2100), 
+                                       );
+                                       if (selectedDate != null) {
+                                         String formattedDate = DateFormat('MM/dd/yyyy').format(selectedDate);
+                                         
+                                         _datecontroller.text = formattedDate;
+                                       }
+                                     },
+                                     controller: _datecontroller,
+                                     style: filedFonts(),
+                                     readOnly: true, 
+                                     decoration: InputDecoration(
+                                       isDense: true,
+                                       filled: true,
+                                       fillColor: Colors.white,
+                                       border: OutlineInputBorder(
+                                         borderRadius: BorderRadius.circular(5),
+                                         borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                       ),
+                                       focusedBorder: OutlineInputBorder(
+                                         borderRadius: BorderRadius.circular(5),
+                                         borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                       ),
+                                       enabledBorder: OutlineInputBorder(
+                                         borderRadius: BorderRadius.circular(5),
+                                         borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                       ),
+                                       hintStyle: TextStyle(color: Color(0xFF948C93)),
+                                       hintText: "Select Date",
+                                     ),
+                                     autofocus: true,
+                                   ),
+                                 ),
+                                       ],
+                                     ),
+                       ),
+                     ],
+                   ),
+                         SizedBox(height: 20,),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              
+                              Container(
+                                child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                  
+                                                  Text("JobcardDate",style: formFonts(16, Colors.black),),
+                                                  Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+                                                ],),
+                                                SizedBox(height: 10,),
+                                               Container(
+                                          height: 45,
+                                                        width: 171,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(5),
+                                          ),
+                                          child: TextField(
+                                            onTap: () async {
+                                              DateTime? selectedDate = await showDatePicker(
+                                                context: context,
+                                                initialDate: DateTime.now(),
+                                                firstDate: DateTime(1900), 
+                                                lastDate: DateTime(2100), 
+                                              );
+                                              if (selectedDate != null) {
+                                                String formattedDate = DateFormat('MM/dd/yyyy').format(selectedDate);
+                                                
+                                                _jobcard_datecontroller.text = formattedDate;
+                                              }
+                                            },
+                                            controller: _jobcard_datecontroller,
+                                            style: filedFonts(),
+                                            readOnly: true, 
+                                            decoration: InputDecoration(
+                                              isDense: true,
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(5),
+                                                borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(5),
+                                                borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(5),
+                                                borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                              ),
+                                              hintStyle: TextStyle(color: Color(0xFF948C93)),
+                                              hintText: "Select Date",
+                                            ),
+                                            autofocus: true,
+                                          ),
+                                        ),
+                                              ],
+                                            ),
+                              ),
+                              SizedBox(width: 2,),
+                              _newjobtxtShortfield("Register No",_registercontroller),
+                            ],
+                          ),
                 ],
               ),
-            ),
-          ),
-          
-                        
-                ],
-              ),
-                                Container(
-                                  child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                    
-                                                    Text("Date",style: getFonts(16, Colors.black),),
-                                                    Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
-                                                  ],),
-                                                 Container(
-                                            height: 45,
-                                                          width: 171,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextField(
-                                              onTap: () async {
-                                                DateTime? selectedDate = await showDatePicker(
-                                                  context: context,
-                                                  initialDate: DateTime.now(),
-                                                  firstDate: DateTime(1900), 
-                                                  lastDate: DateTime(2100), 
-                                                );
-                                                if (selectedDate != null) {
-                                                  String formattedDate = DateFormat('MM/dd/yyyy').format(selectedDate);
-                                                  
-                                                  _datecontroller.text = formattedDate;
-                                                }
-                                              },
-                                              controller: _datecontroller,
-                                              style: filedFonts(),
-                                              readOnly: true, 
-                                              decoration: InputDecoration(
-                                                isDense: true,
-                                                filled: true,
-                                                fillColor: Colors.white,
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  borderSide: BorderSide(color: Appcolors().searchTextcolor),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  borderSide: BorderSide(color: Appcolors().searchTextcolor),
-                                                ),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  borderSide: BorderSide(color: Appcolors().searchTextcolor),
-                                                ),
-                                                hintStyle: TextStyle(color: Color(0xFF948C93)),
-                                                hintText: "Select Date",
-                                              ),
-                                              autofocus: true,
-                                            ),
-                                          ),
-                                                ],
-                                              ),
-                                ),
-                              ],
-                            ),
-                          ),
-                         SizedBox(height: 15,),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 26),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                
-                                Container(
-                                  child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                    
-                                                    Text("JobcardDate",style: getFonts(16, Colors.black),),
-                                                    Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
-                                                  ],),
-                                                 Container(
-                                            height: 45,
-                                                          width: 171,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: TextField(
-                                              onTap: () async {
-                                                DateTime? selectedDate = await showDatePicker(
-                                                  context: context,
-                                                  initialDate: DateTime.now(),
-                                                  firstDate: DateTime(1900), 
-                                                  lastDate: DateTime(2100), 
-                                                );
-                                                if (selectedDate != null) {
-                                                  String formattedDate = DateFormat('MM/dd/yyyy').format(selectedDate);
-                                                  
-                                                  _jobcard_datecontroller.text = formattedDate;
-                                                }
-                                              },
-                                              controller: _jobcard_datecontroller,
-                                              style: filedFonts(),
-                                              readOnly: true, 
-                                              decoration: InputDecoration(
-                                                isDense: true,
-                                                filled: true,
-                                                fillColor: Colors.white,
-                                                border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  borderSide: BorderSide(color: Appcolors().searchTextcolor),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  borderSide: BorderSide(color: Appcolors().searchTextcolor),
-                                                ),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  borderSide: BorderSide(color: Appcolors().searchTextcolor),
-                                                ),
-                                                hintStyle: TextStyle(color: Color(0xFF948C93)),
-                                                hintText: "Select Date",
-                                              ),
-                                              autofocus: true,
-                                            ),
-                                          ),
-                                                ],
-                                              ),
-                                ),
-                                _newjobtxtShortfield("Register No",_registercontroller),
-                              ],
-                            ),
-                          ),
+             ),
           
                            SizedBox(height: 40),
                 Padding(
@@ -508,25 +514,31 @@ Future<bool> post_performa2() async {
                       SizedBox(width: 15),
                       Expanded(
                         flex: 2,
-                        child: TextField(
-                          controller: _lobourschedulecontroller,
-                          decoration: InputDecoration(
-                            hintText: "Labour Schedule",
-                            hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
-                           border: InputBorder.none,isDense: false
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: TextField(
+                            controller: _lobourschedulecontroller,
+                            decoration: InputDecoration(
+                              hintText: "Labour Schedule",
+                              hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
+                             border: InputBorder.none,isDense: false
+                            ),
                           ),
                         ),
                       ),
                      SizedBox(width: 25),
                       Expanded(flex: 1,
-                        child: TextField(
-                          controller: _amountcontroller,
-                          decoration: InputDecoration(
-                            hintText: "Amount",
-                            hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
-                            border: InputBorder.none,isDense: false
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: TextField(
+                            controller: _amountcontroller,
+                            decoration: InputDecoration(
+                              hintText: "Amount",
+                              hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
+                              border: InputBorder.none,isDense: false
+                            ),
+                            keyboardType: TextInputType.number,
                           ),
-                          keyboardType: TextInputType.number,
                         ),
                       ),
                       SizedBox(width: 10),
@@ -621,9 +633,10 @@ Future<bool> post_performa2() async {
                 Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                   
-                  Text(textrow,style: getFonts(16, Colors.black),),
+                  Text(textrow,style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
+                SizedBox(height: 10,),
                 Container(
                         height: 45,
                         width: 171,
