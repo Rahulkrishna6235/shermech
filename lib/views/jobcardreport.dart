@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+//import 'package:share_plus/share_plus.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:intl/intl.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
@@ -171,54 +172,71 @@ bool isSearchFieldVisible = false;
   });
 }
 
-
- 
 Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
   final pdf = pw.Document();
-  pdf.addPage(pw.Page(
-    build: (pw.Context context) {
-      return pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Text("JobCard Report", style: pw.TextStyle(fontSize: 24, font: pw.Font.courier())),
-          pw.SizedBox(height: 20),
-          pw.Table.fromTextArray(
-            context: context,
-            data: <List<String>>[
-              ['id', 'Booking Date', 'JC No', 'Name'], // Table headers
-              ...reportList.map((report) => [
-                report['id'].toString(),
-                report['arivedate'] ?? '',
-                report['jobcardno'] ?? '',
-                report['customername'] ?? '',
-              ]),
-            ],
-          ),
-        ],
-      );
-    },
-  ));
 
+  // Add page to PDF
+  pdf.addPage(
+    pw.Page(
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.start,
+          children: [
+            pw.Text("JobCard Report", style: pw.TextStyle(fontSize: 24, font: pw.Font.courier())),
+            pw.SizedBox(height: 20),
+            pw.Table.fromTextArray(
+              context: context,
+              data: <List<String>>[
+                ['id', 'Booking Date', 'JC No', 'Name'], 
+                ...reportList.map((report) => [
+                  report['id'].toString(),
+                  report['arivedate'] ?? '',
+                  report['jobcardno'] ?? '',
+                  report['customername'] ?? '',
+                  
+                ]
+                
+                ),
+              ],
+              cellAlignment: pw.Alignment.center,
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  // Save PDF to the app's documents directory
   final outputDirectory = await getApplicationDocumentsDirectory();
   final file = File("${outputDirectory.path}/jobcard_report.pdf");
+
+  // Ensure the file is written properly
   await file.writeAsBytes(await pdf.save());
   return file;
-  
 }
 
- Future<void> _generateAndViewPDF() async {
-    if (reportlist.isEmpty) {
-      Fluttertoast.showToast(msg: 'No data available to generate PDF');
-      return;
-    }
-    File pdfFile = await generatePDF(reportlist);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PDFScreen(path: pdfFile.path),
-      ),
-    );
+ 
+
+Future<void> _generateAndViewPDF() async {
+  if (reportlist.isEmpty) {
+    Fluttertoast.showToast(msg: 'No data available to generate PDF');
+    return;
   }
+
+  print("Report list: $reportlist"); // Debugging to ensure data is passed correctly.
+
+  File pdfFile = await generatePDF(reportlist);
+
+  // Navigate to the PDF screen after the PDF is generated
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PDFScreen(path: pdfFile.path),
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

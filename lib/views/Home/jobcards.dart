@@ -230,6 +230,7 @@ String query = """
       drawer: AppDrawer(),
       body: Column(
         children: [
+          SizedBox(height: 5,),
           Tab(
       child: Padding(
         padding: const EdgeInsets.only(left: 14,right: 14),
@@ -276,7 +277,7 @@ String query = """
       
     ),
 
-          SizedBox(height: 5,),
+          SizedBox(height: 10,),
 
           Padding(
             padding: const EdgeInsets.only(left: 11,right: 10),
@@ -316,7 +317,7 @@ String query = """
           ),
           
 
-          SizedBox(height: 10,),
+          SizedBox(height: 20,),
 
           Expanded(
             child: ListView.separated(
@@ -353,7 +354,7 @@ String query = """
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(left: 15),
-                            child: Text("SN :$sn",style:getFonts(18, Colors.white),),
+                            child: Text("SN :  $sn",style:getFonts(16, Colors.white),),
                           ),
                           PopupMenuButton<String>(
                         color: Appcolors().scafoldcolor,
@@ -403,7 +404,7 @@ String query = """
                        child: Row(
                         children: [
                           _listcontents("DATE"),
-                        Expanded(flex: 3, child: Text(" :${jobcardList[index]['arivedate']}  ")),
+                        Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['arivedate']}  ",style: filedFonts())),
                         ],
                        ),
                      ),
@@ -413,7 +414,7 @@ String query = """
                        child: Row(
                         children: [
                           _listcontents("JOBCARD NO"),
-                        Expanded(flex: 3, child: Text(" : ${jobcardList[index]['jobcardno']} ")),
+                        Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['jobcardno']} ",style: filedFonts())),
                         ],
                        ),
                      ),
@@ -423,7 +424,7 @@ String query = """
                        child: Row(
                         children: [
                           _listcontents("CUSTOMER NAME"),
-                        Expanded(flex: 3, child: Text(" : ${jobcardList[index]['customername']} ")),
+                        Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['customername']} ",style: filedFonts())),
                         ],
                        ),
                      ),
@@ -433,7 +434,7 @@ String query = """
                        child: Row(
                         children: [
                           _listcontents("MODEL"),
-                        Expanded(flex: 3, child: Text(" : ${jobcardList[index]['model']}")),
+                        Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['model']}",style: filedFonts())),
                         ],
                        ),
                      ),
@@ -443,7 +444,7 @@ String query = """
                        child: Row(
                         children: [
                           _listcontents("REGISTRATION NO"),
-                        Expanded(flex: 3, child: Text(" : ${jobcardList[index]['registerno']}")),
+                        Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['registerno']}",style: filedFonts())),
                         ],
                        ),
                      ),
@@ -453,7 +454,7 @@ String query = """
                        child: Row(
                         children: [
                           _listcontents("REMARK"),
-                        Expanded(flex: 3, child: Text(" : ${jobcardList[index]['remark']} ")),
+                        Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['remark']} ",style: filedFonts(),)),
                         ],
                        ),
                      )

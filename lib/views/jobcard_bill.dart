@@ -139,7 +139,7 @@ Future<void> get_Performa() async {
       _machanicController.text = selectedJobcard['Technicians'] ?? '';
       _kvmcoverController.text = selectedJobcard['kilometer'].toString() ;
       _jc_startnoController.text = selectedJobcard['jc_start'] ?? '';
-      _jc_finishController.text = selectedJobcard['jc_finish'] ?? '';
+      _jc_finishController.text = selectedJobcard['deliverdate'] ?? '';
       _engineNoController.text = selectedJobcard['engine_no'] ?? '';
       _chassisNoController.text = selectedJobcard['chassisno'] ?? '';
       _nameNoController.text = selectedJobcard['customername'] ?? '';
@@ -421,7 +421,7 @@ Future<void> get_Performa() async {
                        SizedBox(height: 20,),
                        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _newjobtxtShortfield("JC start", _jc_finishController),
+                          _newjobtxtShortfield("JC start", _jobcard_dateController),
                          _newjobtxtShortfield("JC finish", _jc_finishController)
 
                         ],
