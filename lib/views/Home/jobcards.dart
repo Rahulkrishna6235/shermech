@@ -8,6 +8,8 @@ import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
 import 'package:sher_mech/utility/font.dart';
 import 'package:sher_mech/views/Home/newjobcard.dart';
+import 'package:sher_mech/views/tabs/pendingdelivary.dart';
+import 'package:sher_mech/views/tabs/pendingjobcard.dart';
 import 'package:sher_mech/views/vehiclemake.dart';
 
 class Jobcards extends StatefulWidget {
@@ -184,6 +186,37 @@ String query = """
   });
 }
 
+  void _OnTabSelected(int index) {
+  setState(() {
+    _selectedIndex = index; // Update the selected tab index
+  });
+
+  // Navigate to a new screen based on the selected index
+  switch (_selectedIndex) {
+    case 0:
+      // Navigate to Pending Jobcards screen when the first tab is selected
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PendingCard()),
+      );
+      break;
+    case 1:
+      // Navigate to Pending Delivery screen when the second tab is selected
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PEndingDelivary()),
+      );
+      break;
+    default:
+      // Default navigation case (fallback)
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PendingCard()),
+      );
+  }
+}
+
+
 
  
   @override
@@ -238,7 +271,7 @@ String query = """
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             GestureDetector(
-              onTap: () => _onTabSelected(0),
+              onTap: () => _OnTabSelected(0),
               child: Container(
                 width: 175,
                 height: 33,
@@ -255,7 +288,7 @@ String query = """
               ),
             ),
             GestureDetector(
-              onTap: () => _onTabSelected(1),
+              onTap: () => _OnTabSelected(1),
               child: Container(
                 width: 175,
                 height: 33,
