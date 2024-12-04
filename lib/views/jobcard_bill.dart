@@ -230,6 +230,7 @@ Future<void> get_Performa() async {
                   Text("Jobcard No",style: formFonts(16, Colors.black),),
                   Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
                 ],),
+                SizedBox(height: 10,),
                 IntrinsicHeight(
   child: Container(
     constraints: BoxConstraints(
@@ -524,8 +525,20 @@ Future<void> get_Performa() async {
                
 
                  Padding(
-                   padding: const EdgeInsets.only(top: 6),
+                   padding: const EdgeInsets.only(right: 23),
                    child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+        BoxShadow(
+          color: Appcolors().searchTextcolor,
+          blurRadius: 2.0,
+          spreadRadius: 0.0,
+          offset: Offset(0.0, 0.0),
+        )
+      ],
+            ),
                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                children:  [
                                                  Expanded(child: Padding(
@@ -542,50 +555,58 @@ Future<void> get_Performa() async {
                              ),
                  ),
 
-                  Container(
-                height: 200,
-              child: ListView.builder(
-                  itemCount: _cusvoiceController.text.isNotEmpty
-        ? _cusvoiceController.text.split(',').length
-        : 0,
-                itemBuilder: (context, index) {
-                  final List<String> customerRequests = _cusvoiceController.text.split(',');
-      final sn = index + 1;
-      final request = customerRequests[index].trim();
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 25),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 23),
                     child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(5),topRight: Radius.circular(5)),
-                        border: Border(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  boxShadow: [
+                            BoxShadow(
+                              color: Appcolors().searchTextcolor,
+                              blurRadius: 2.0,
+                              spreadRadius: 0.0,
+                              offset: Offset(0.0, 0.0),
+                            )
+                          ],
+                                ),
+                                  child: ListView.builder(
+                    itemCount: _cusvoiceController.text.isNotEmpty
+                            ? _cusvoiceController.text.split(',').length
+                            : 0,
+                                    itemBuilder: (context, index) {
+                    final List<String> customerRequests = _cusvoiceController.text.split(',');
+                          final sn = index + 1;
+                          final request = customerRequests[index].trim();
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 25),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(topLeft: Radius.circular(5),topRight: Radius.circular(5)),
                           
-                          bottom: BorderSide(
-                            color: Colors.grey.shade400,
-                            width: 1,
-                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          children: [
+                           
+                            Padding(
+                              padding: const EdgeInsets.only(left: 12),
+                              child: Text("$sn"),
+                            ),
+                             
+                            Expanded(child: Center(child: Padding(
+                              padding: const EdgeInsets.only(left: 70),
+                              child: Text(request),
+                            ))),
+                           
+                          ],
                         ),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        children: [
-                         
-                          Padding(
-                            padding: const EdgeInsets.only(left: 12),
-                            child: Text("$sn"),
-                          ),
-                           
-                          Expanded(child: Center(child: Padding(
-                            padding: const EdgeInsets.only(left: 70),
-                            child: Text(request),
-                          ))),
-                         
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                    );
+                                    },
+                                  ),
+                                ),
+                  ),
                  
              SizedBox(height: 10,),
              
@@ -624,7 +645,7 @@ Future<void> get_Performa() async {
                                              ),
                              ),
                  ),
-             SizedBox(height: 140,),
+             SizedBox(height: 160,),
              
                  Padding(
                   padding: const EdgeInsets.only(right: 22),
@@ -668,19 +689,11 @@ Future<void> get_Performa() async {
            ),
      Container(padding: EdgeInsets.symmetric(horizontal: 23),
   height: 200,
-  // decoration: BoxDecoration(
-  //   color: Colors.white,
-  //         boxShadow: [
-  //                            BoxShadow(
-  //                 color: Appcolors().searchTextcolor,
-  //                 blurRadius: 2.0,
-  //                 spreadRadius: 0.0,
-  //                 offset: Offset(0.2, 0.0,), // shadow direction: bottom right
-  //                            )
-  //                        ],
-  // ),
+  decoration: BoxDecoration(
+   
+  ),
   child: ListView.builder(
-    itemCount: performaList.length, // Use the length of the populated list
+    itemCount: performaList.length,
     itemBuilder: (context, index) {
       final sn = index + 1;
       final labourschedule = performaList[index]['labourschedule'];
@@ -690,12 +703,7 @@ Future<void> get_Performa() async {
         decoration: BoxDecoration(
           
           borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5)),
-          border: Border(
-            bottom: BorderSide(
-              color: Colors.grey.shade400,
-              width: 1,
-            ),
-          ),
+         
         ),
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sher_mech/ApiRepository/vehiclemakerepo.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
@@ -19,185 +20,47 @@ final sqlConnection = MssqlConnection.getInstance();
 
 class _VehicleMakeState extends State<VehicleMake> {
   bool isLoading = false;
-  List<Map<String, dynamic>> vehicleList = [];
+  List vehicleList = [];
   final TextEditingController _vehiclenameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   int? _selectedSiNo;  // To store the SiNo of the vehicle to be edited
-
+  late Future<List<dynamic>> make;
+  final ApiVehicleMakeRepository _apimakeRepository =ApiVehicleMakeRepository();
   @override
   void initState() {
     super.initState();
-    connectAndGetData();
+    make=ApiVehicleMakeRepository().get_vehiclemake();
   }
 
-  Future<void> connectAndGetData() async {
-    bool isConnected = await connect();
-    if (isConnected) {
-      await getData(); 
-    } else {
-      Fluttertoast.showToast(msg: 'Database connection failed');
-    }
-  }
-
-  Future<bool> connect() async {
-    return await sqlConnection.connect(
-      ip: ipAdress,
-      port: port,
-      databaseName: databasename,
-      username: username,
-      password: password,
-    );
-  }
-
-  Future<void> getData() async {
-    String query = 'SELECT * FROM vehicleMake ORDER BY SiNo';
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
-          setState(() {
-            vehicleList = List<Map<String, dynamic>>.from(data);
-          });
-          int siNo=1;
-          for(var vehiclemake in vehicleList){
-              vehiclemake['SiNo']=siNo++;
-          }
-        } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            vehicleList = [];
-          });
-        }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<bool> post() async {
-    if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-      setState(() {
-        isLoading = true;
-      });
-
-      String vehicleName = _vehiclenameController.text.replaceAll("'", "''");
-
-      String queryMaxSiNo = 'SELECT MAX(SiNo) as MaxSiNo FROM vehicleMake';
-      int nextSiNo = 1;  
+Future<void> submitMake() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      Map<String, dynamic> vehicleData = {
+        'VehicleName': _vehiclenameController.text,
+      };
 
       try {
-        bool isConnected = await connect();
-        if (isConnected) {
-          String maxSiNoResult = await sqlConnection.getData(queryMaxSiNo);
-          if (maxSiNoResult.isNotEmpty) {
-            List<dynamic> resultList = json.decode(maxSiNoResult);
-            if (resultList.isNotEmpty) {
-              Map<String, dynamic> resultMap = resultList[0];
-              if (resultMap['MaxSiNo'] != null) {
-                nextSiNo = resultMap['MaxSiNo'] + 1;
-              }
-            }
-          }
+        bool success = await _apimakeRepository.post_vehiclemake(vehicleData);
 
-          String insertQuery = "INSERT INTO vehicleMake (SiNo, VehicleName) VALUES ($nextSiNo, '$vehicleName')";
+        if (success) {
+          setState(() {
+            vehicleList.add({
+              'SiNo': vehicleList.length + 1,  
+              'VehicleName': _vehiclenameController.text,
+            });
+          });
 
-          String result = await sqlConnection.writeData(insertQuery);
-          Map<dynamic, dynamic> valueMap = json.decode(result);
-          if (valueMap['affectedRows'] == 1) {
-            _vehiclenameController.clear();
-            await getData();  
-            setState(() {
-              isLoading = false;
-            });
-            Fluttertoast.showToast(msg: "Vehicle added successfully");
-            return true;
-          } else {
-            Fluttertoast.showToast(msg: "Failed to add vehicle");
-            setState(() {
-              isLoading = false;
-            });
-          }
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
+          Navigator.pop(context); 
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
         }
       } catch (e) {
-        Fluttertoast.showToast(msg: "Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
-    return false;
-  }
+}
 
-  Future<bool> updateVehicle(int siNo, String newVehicleName) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    String query = "UPDATE vehicleMake SET VehicleName = '$newVehicleName' WHERE SiNo = $siNo";
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.writeData(query);
-        Map<dynamic, dynamic> valueMap = json.decode(result);
-        if (valueMap['affectedRows'] == 1) {
-          Fluttertoast.showToast(msg: "Vehicle updated successfully");
-          await getData(); 
-          return true;
-        } else {
-          Fluttertoast.showToast(msg: "Failed to update vehicle");
-        }
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-
-    return false;
-  }
-
-  Future<bool> deleteVehicle(int siNo) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    String query = "DELETE FROM vehicleMake WHERE SiNo = $siNo";
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.writeData(query);
-        Map<dynamic, dynamic> valueMap = json.decode(result);
-        if (valueMap['affectedRows'] == 1) {
-          Fluttertoast.showToast(msg: "Deleted");
-          await getData(); 
-          return true;
-        } else {
-          Fluttertoast.showToast(msg: "Failed to delete vehicle");
-        }
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-
-    return false;
-  }
+  
 
   adaPopup({String? vehicleName, int? siNo}) {
     if (vehicleName != null && siNo != null) {
@@ -255,15 +118,8 @@ class _VehicleMakeState extends State<VehicleMake> {
                 const SizedBox(height: 15),
                 GestureDetector(
                   onTap: () async {
-                    bool success;
-                    if (_selectedSiNo != null) {
-                      success = await updateVehicle(_selectedSiNo!, _vehiclenameController.text);
-                    } else {
-                      success = await post();
-                    }
-                    if (success) {
-                      Navigator.pop(context);
-                    }
+                    submitMake();
+                    //Navigator.of(context).pop();
                   },
                   child: Center(
                     child: Container(
@@ -342,13 +198,25 @@ class _VehicleMakeState extends State<VehicleMake> {
           const SizedBox(height: 16),
           isLoading
               ? Center(child: CircularProgressIndicator())
-              : Expanded(
+              :  Expanded(
+            child: FutureBuilder<List<dynamic>>(
+              future: make, 
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (snapshot.hasData) {
+                  vehicleList = snapshot.data!;
+
+                  return   Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 16, right: 18),
                     child: ListView.separated(
                       separatorBuilder: (context, index) => const SizedBox(height: 15),
                       itemCount: vehicleList.length,
                       itemBuilder: (BuildContext context, int index) {
+                        int sn = index + 1; 
                         return Container(
                           width: 358,
                           height: 59,
@@ -364,11 +232,11 @@ class _VehicleMakeState extends State<VehicleMake> {
                                 children: [
                                   Row(
                                     children: [
-                                      Text(vehicleList[index]['SiNo'].toString(), style: getFonts(16, Colors.black)),
+                                      Text("$sn", style: getFonts(16, Colors.black)),
                                       const SizedBox(width: 10),
                                       CircleAvatar(radius: 20, backgroundColor: Appcolors().maincolor),
                                       const SizedBox(width: 10),
-                                      Text(vehicleList[index]['VehicleName'], style: getFonts(16, Colors.black)),
+                                      Text(vehicleList[index]['VehicleName']??"", style: getFonts(16, Colors.black)),
                                     ],
                                   ),
                                   PopupMenuButton<String>(
@@ -377,7 +245,7 @@ class _VehicleMakeState extends State<VehicleMake> {
                                       if (value == 'Edit') {
                                         adaPopup(vehicleName: vehicleList[index]['VehicleName'], siNo: vehicleList[index]['SiNo']);
                                       } else if (value == 'Delete') {
-                                        deleteVehicle(vehicleList[index]['SiNo']); 
+                                        //deleteVehicle(vehicleList[index]['SiNo']); 
                                       }
                                     },
                                     itemBuilder: (BuildContext context) => [
@@ -394,7 +262,13 @@ class _VehicleMakeState extends State<VehicleMake> {
                       },
                     ),
                   ),
-                ),
+                );
+                } else {
+                  return Center(child: Text("No data available"));
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

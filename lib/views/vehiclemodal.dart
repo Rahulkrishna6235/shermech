@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sher_mech/ApiRepository/vehiclemakerepo.dart';
+import 'package:sher_mech/ApiRepository/vehiclemodalapi.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
@@ -24,7 +26,7 @@ class _VehiclemodalState extends State<Vehiclemodal> {
 
   bool isLoading = false;
   List<Map<String, dynamic>> vehiclemodalList = [];
-  List<Map<String, dynamic>> filteredVehicleList = [];
+  List filteredVehicleList = [];
   List<Map<String,dynamic>> vehicleList=[];
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _subtitleController = TextEditingController();
@@ -33,183 +35,78 @@ class _VehiclemodalState extends State<Vehiclemodal> {
   final _formKey = GlobalKey<FormState>();
   List<String> _suggestions = [];
 int? _selectedSiNo; 
+late Future<List<dynamic>> jobcards;
+List<String> Vmake = [];
+  List<dynamic> vamnes = [];
+final ApiVehicleModelRepository _apiModelRepository=ApiVehicleModelRepository();
   @override
   void initState() {
     super.initState();
-    connectAndGetData();
     _searchController.addListener(_filterSearchResults);
-    getData();
+   jobcards=ApiVehicleModelRepository().get_vehiclemodel();
+   fetchJobcards();
   }
 
-  Future<void> connectAndGetData() async {
-    bool isConnected = await connect();
-    if (isConnected) {
-      await Getdata();
-    } else {
-      Fluttertoast.showToast(msg: 'Database connection failed');
-    }
-  }
-
-  Future<bool> post(String modelTitle, String modalSubtitle) async {
-    if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-      setState(() {
-        isLoading = true;
-      });
-
-      String title = modelTitle.replaceAll("'", "''");
-      String subtitle = modalSubtitle.replaceAll("'", "''");
-
-      int nextID = 1;
+Future<void> submitModel() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      Map<String, dynamic> vehicleData = {
+        'modeletitle': _titleController.text,
+        'modalsubtitle': _subtitleController.text,
+      };
 
       try {
-        bool isConnected = await connect();
-        if (!isConnected) {
-          Fluttertoast.showToast(msg: 'Database connection failed');
+        bool success = await _apiModelRepository.post_vehiclemodel(vehicleData);
+
+        if (success) {
           setState(() {
-            isLoading = false;
+            vehicleList.add({
+              'ID': filteredVehicleList.length + 1,  
+              'modeletitle': _titleController.text,
+              'modalsubtitle': _subtitleController.text,
+            });
           });
-          return false;
-        }
 
-        String queryMaxSiNo = 'SELECT MAX(ID) as MaxID FROM VehicleModel';
-        String maxSiNoResult = await sqlConnection.getData(queryMaxSiNo);
-
-        if (maxSiNoResult.isNotEmpty) {
-          List<dynamic> resultList = json.decode(maxSiNoResult);
-          if (resultList.isNotEmpty && resultList[0]['MaxID'] != null) {
-            nextID = resultList[0]['MaxID'] + 1;
-          }
-        }
-
-        String query = "INSERT INTO VehicleModel (ID, modeletitle, modalsubtitle) VALUES ($nextID, '$title', '$subtitle')";
-        String result = await sqlConnection.writeData(query);
-        Map<String, dynamic> valueMap = json.decode(result);
-
-        if (valueMap['affectedRows'] == 1) {
-          _titleController.clear();
-          _subtitleController.clear();
-          await Getdata();
-          Fluttertoast.showToast(msg: "Vehicle added successfully");
-          return true;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
+          Navigator.pop(context); 
         } else {
-          Fluttertoast.showToast(msg: "Failed to add vehicle");
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
         }
       } catch (e) {
-        Fluttertoast.showToast(msg: "Error: $e");
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
-    return false;
-  }
+}
 
-  Future<void> Getdata() async {
-    String query = 'SELECT * FROM VehicleModel ORDER BY ID';
+Future<void> fetchJobcards() async {
+  try {
+    final fetchedJobcards = await ApiVehicleMakeRepository().get_vehiclemake();
     setState(() {
-      isLoading = true;
+      vamnes = fetchedJobcards;  
+      Vmake = fetchedJobcards
+          .map<String>((jobcard) => jobcard['VehicleName'].toString()) 
+          .toList();  
     });
-
-    try {
-      bool isConnected = await connect();
-      if (!isConnected) {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-        setState(() {
-          isLoading = false;
-        });
-        return;
-      }
-
-      String result = await sqlConnection.getData(query);
-      if (result.isNotEmpty) {
-        List<dynamic> data = json.decode(result);
-        setState(() {
-          vehiclemodalList = List<Map<String, dynamic>>.from(data);
-          filteredVehicleList = List.from(vehiclemodalList);
-        });
-
-        int nextID = 1;
-        for (var vehicle in vehiclemodalList) {
-          vehicle['ID'] = nextID++;
-        }
-      } else {
-        Fluttertoast.showToast(msg: 'No data found');
-        setState(() {
-          vehiclemodalList = [];
-          filteredVehicleList = [];
-        });
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<bool> deleteVehicle(int nextID) async {
+  } catch (e) {
     setState(() {
-      isLoading = true;
+      Fluttertoast.showToast(msg: 'Failed to fetch jobcards: $e');
     });
-
-    String query = "DELETE FROM VehicleModel WHERE ID = $nextID";
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.writeData(query);
-        Map<dynamic, dynamic> valueMap = json.decode(result);
-        if (valueMap['affectedRows'] == 1) {
-          Fluttertoast.showToast(msg: "Deleted");
-          await Getdata();
-          return true;
-        } else {
-          Fluttertoast.showToast(msg: "Failed to delete vehicle");
-        }
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-
-    return false;
   }
+}
+  
+  void onJobcardSelected(String jobcardNo) {
+  final selectedJobcard = vamnes.firstWhere(
+    (jobcard) => jobcard['VehicleName'] == jobcardNo,
+    orElse: () => <String, dynamic>{},
+  );
 
-  Future<bool> updateVehiclemodal(int id, String modaltitle,String modalsubtitle) async {
+  if (selectedJobcard.isNotEmpty) {
+   
+  } else {
     setState(() {
-      isLoading = true;
+      Fluttertoast.showToast(msg: 'VehicleName not found');
     });
-
-String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtitle = '$modalsubtitle' WHERE ID = $id";
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.writeData(query);
-        Map<dynamic, dynamic> valueMap = json.decode(result);
-        if (valueMap['affectedRows'] == 1) {
-          Fluttertoast.showToast(msg: "Vehicle updated successfully");
-          await Getdata(); 
-          return true;
-        } else {
-          Fluttertoast.showToast(msg: "Failed to update vehicle");
-        }
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-
-    return false;
   }
+}
 
   void _filterSearchResults() {
     String query = _searchController.text.toLowerCase();
@@ -222,56 +119,6 @@ String query = "UPDATE VehicleModel SET modeletitle = '$modaltitle', modalsubtit
     });
   }
 
-Future<void> getData() async {
-    String query = 'SELECT * FROM vehicleMake ORDER BY SiNo';
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
-          setState(() {
-            vehicleList = List<Map<String, dynamic>>.from(data);
-          });
-          int siNo=1;
-          for(var vehiclemake in vehicleList){
-              vehiclemake['SiNo']=siNo++;
-          }
-        } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            vehicleList = [];
-          });
-        }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  
-
-   void onJobcardSelected(String jobcardNo) {
-  try {
-    final selectedJobcard =
-        vehicleList.firstWhere((jobcard) => jobcard['VehicleName'] == jobcardNo);
-
-    // Perform necessary actions with selectedJobcard
-    print('Selected Jobcard: $selectedJobcard');
-  } catch (e) {
-    Fluttertoast.showToast(msg: 'Error: No matching data found');
-  }
-}
 
 
   @override
@@ -383,67 +230,83 @@ Future<void> getData() async {
           ),
           SizedBox(height: 10),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16,right: 18),
-              child: ListView.separated(
+            child: FutureBuilder<List<dynamic>>(
+              future: jobcards, 
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (snapshot.hasData) {
+                  filteredVehicleList = snapshot.data!;
+
+                  return  ListView.separated(
                 itemCount: filteredVehicleList.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    width: 358,
-                    height: 59,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: Appcolors().scafoldcolor,
-                    ),
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Text(" ${filteredVehicleList[index]['ID']}",style: getFonts(16, Colors.black)),
-                                SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(filteredVehicleList[index]["modeletitle"], style: getFonts(16, Colors.black)),
-                                    Text(filteredVehicleList[index]["modalsubtitle"], style: TextStyle(color: Colors.black,)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            PopupMenuButton<String>(
-                              color: Appcolors().scafoldcolor,
-                              onSelected: (value) {
-                                 if (value == 'Edit') {
-                                   adaPopup(title:vehiclemodalList[index]["modeletitle"],subtitle: vehiclemodalList[index]["modalsubtitle"],id:vehiclemodalList[index]["ID"] );  
-                                      } else if (value == 'Delete') {
-                                        deleteVehicle(filteredVehicleList[index]["ID"]); 
-                                      }
-      
-                              },
-                              itemBuilder: (BuildContext context) => [
-                                PopupMenuItem(
-                                  value: 'Edit',
-                                  child: Text('Edit'),
-                                ),
-                                PopupMenuItem(
-                                  value: 'Delete',
-                                  child: Text('Delete'),
-                                ),
-                              ],
-                              icon: Icon(Icons.more_vert, color: Colors.black),
-                            ),
-                          ],
+                  int sn = index + 1;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Container(
+                      width: 358,
+                      height: 59,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: Appcolors().scafoldcolor,
+                      ),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(" $sn",style: getFonts(16, Colors.black)),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(filteredVehicleList[index]["modeletitle"], style: getFonts(16, Colors.black)),
+                                      Text(filteredVehicleList[index]["modalsubtitle"], style: TextStyle(color: Colors.black,)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              PopupMenuButton<String>(
+                                color: Appcolors().scafoldcolor,
+                                onSelected: (value) {
+                                   if (value == 'Edit') {
+                                     adaPopup(title:vehiclemodalList[index]["modeletitle"],subtitle: vehiclemodalList[index]["modalsubtitle"],id:vehiclemodalList[index]["ID"] );  
+                                        } else if (value == 'Delete') {
+                                        //deleteVehicle(filteredVehicleList[index]["ID"]); 
+                                        }
+                          
+                                },
+                                itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem(
+                                    value: 'Edit',
+                                    child: Text('Edit'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'Delete',
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                                icon: Icon(Icons.more_vert, color: Colors.black),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   );
                 },
                 separatorBuilder: (context, index) => SizedBox(height: 15),
-              ),
+              );
+                } else {
+                  return Center(child: Text("No data available"));
+                }
+              },
             ),
           ),
         ],
@@ -525,10 +388,10 @@ Future<void> getData() async {
                             ),
                             child: EasyAutocomplete(
                                                         controller: _subtitleController,
-                                                        suggestions: vehicleList
+                                                        suggestions: vamnes
                                       .map((jobcard) => jobcard['VehicleName'].toString())
                                       .toList(),
-                                                        onSubmitted: (value) {
+                                      onSubmitted: (value) {
                                     onJobcardSelected(value);
                                                         },
                                                       decoration: InputDecoration(
@@ -539,18 +402,7 @@ Future<void> getData() async {
                       const SizedBox(height: 15),
                       GestureDetector(
                         onTap: () async {
-                          bool success = false;
-                      if (_selectedSiNo != null) {
-                        success = await updateVehiclemodal(_selectedSiNo!, _subtitleController.text,_titleController.text);
-                      } else {
-                        success = await post(
-                          _titleController.text.trim(),
-        _subtitleController.text.trim(),
-                        );
-                      }
-                      if (success) {
-                        Navigator.pop(context);
-                      }
+                        submitModel();
                         },
                         child: Center(
                           child: Container(

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sher_mech/ApiRepository/jobcardlist.dart';
 //import 'package:share_plus/share_plus.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +25,7 @@ class Jobcardreport extends StatefulWidget {
 }
 
 class _JobcardreportState extends State<Jobcardreport> {
-  List<Map<String,dynamic>> reportlist=[];
+  List reportlist=[];
     List<Map<String,dynamic>> filter_reportlist=[];
 bool isSearchFieldVisible = false;
   bool isLoading = false;
@@ -54,83 +55,17 @@ bool isSearchFieldVisible = false;
       });
     }
   }
+late Future<List<dynamic>> reportget;
 
    @override
   void initState() {
     super.initState();
-    connectAndGetData();
+    reportget=ApiJobcardRepository().getjobcard();
   
   }
 
-  Future<void> connectAndGetData() async {
-    bool isConnected = await connect();
-    if (isConnected) {
-      await getData_reportcard();
-    } else {
-      Fluttertoast.showToast(msg: 'Database connection failed');
-    }
-  }
-  List<Map<String, dynamic>> originalReportList = []; 
-   Future<void> getData_reportcard() async {
-  String query = 'SELECT * FROM Newjobcard ORDER BY id';
-  setState(() {
-    isLoading = true;
-  });
-
-  try {
-    bool isConnected = await connect();
-    if (isConnected) {
-      String result = await sqlConnection.getData(query);
-      if (result.isNotEmpty) {
-        List<dynamic> data = json.decode(result);
-        originalReportList = List<Map<String, dynamic>>.from(data); // Store the original data
-        reportlist = List<Map<String, dynamic>>.from(data);
-        List<Map<String, dynamic>> tempList = List<Map<String, dynamic>>.from(data);
-
-        final DateFormat dateFormat = DateFormat('MM/dd/yyyy');  
-
-        if (_fromDate != null && _toDate != null) {
-          tempList = tempList.where((jobCard) {
-            try {
-              String ariveDateStr = jobCard['arivedate']?.toString() ?? '';
-              print("Attempting to parse: $ariveDateStr");
-
-              DateTime jobCardDate = dateFormat.parse(ariveDateStr);
-              print("Parsed Date: $jobCardDate");
-
-              return jobCardDate.isAfter(_fromDate!.subtract(Duration(days: 1))) &&
-                     jobCardDate.isBefore(_toDate!.add(Duration(days: 1)));
-            } catch (e) {
-              print("Error parsing date: ${jobCard['arivedate']}");
-              return false;
-            }
-          }).toList();
-        }
-
-        setState(() {
-          reportlist = tempList;
-          if (tempList.isEmpty) {
-            Fluttertoast.showToast(msg: 'No data found for the selected date range');
-          }
-        });
-      } else {
-        Fluttertoast.showToast(msg: 'No data found');
-        setState(() {
-          reportlist = [];
-          filter_reportlist=[];
-        });
-      }
-    } else {
-      Fluttertoast.showToast(msg: 'Database connection failed');
-    }
-  } catch (e) {
-    Fluttertoast.showToast(msg: 'Error: $e');
-  } finally {
-    setState(() {
-      isLoading = false;
-    });
-  }
-}
+ 
+  List<Map<String, dynamic>> originalReportList = [];
 
 
  Future<void> _select_reportDate(BuildContext context, bool isFromDate) async {
@@ -149,28 +84,26 @@ bool isSearchFieldVisible = false;
         _toDate = selectedDate;
       }
     });
-    await getData_reportcard();
+    //await getData_reportcard();
   }
 }
- void _filterSearchResults(String query) {
-  setState(() {
-    if (query.isEmpty) {
-      // Reset to the full list when the query is empty
-      reportlist = List.of(originalReportList);  // Ensure you have the original data saved
-    } else {
-      // Filter the report list based on the query and criteria
-      filter_reportlist = reportlist.where((jobreport) {
-        if (filterCriteria == 'Name') {
-          return jobreport['customername']?.toLowerCase().contains(query) ?? false;
-        } else if (filterCriteria == 'Jobcard No') {
-          return jobreport['jobcardno']?.toString().toLowerCase().contains(query) ?? false;
-        }
-        return false;
-      }).toList();
-      reportlist = filter_reportlist;
-    }
-  });
-}
+//  void _filterSearchResults(String query) {
+//   setState(() {
+//     if (query.isEmpty) {
+//       reportlist = List.of(originalReportList);  
+//     } else {
+//       filter_reportlist = reportlist.where((jobreport) {
+//         if (filterCriteria == 'Name') {
+//           return jobreport['customername']?.toLowerCase().contains(query) ?? false;
+//         } else if (filterCriteria == 'Jobcard No') {
+//           return jobreport['jobcardno']?.toString().toLowerCase().contains(query) ?? false;
+//         }
+//         return false;
+//       }).toList();
+//       reportlist = filter_reportlist;
+//     }
+//   });
+// }
 
 Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
   final pdf = pw.Document();
@@ -226,15 +159,15 @@ Future<void> _generateAndViewPDF() async {
 
   print("Report list: $reportlist"); // Debugging to ensure data is passed correctly.
 
-  File pdfFile = await generatePDF(reportlist);
+ // File pdfFile = await generatePDF(reportlist);
 
   // Navigate to the PDF screen after the PDF is generated
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => PDFScreen(path: pdfFile.path),
-    ),
-  );
+  // Navigator.push(
+  //   context,
+  //   MaterialPageRoute(
+  //     builder: (context) => PDFScreen(path: pdfFile.path),
+  //   ),
+  // );
 }
 
 
@@ -258,7 +191,7 @@ Future<void> _generateAndViewPDF() async {
             ),
             autofocus: true, 
             onChanged: (value) {
-              _filterSearchResults(value);
+              //_filterSearchResults(value);
             }, 
             // automatically focus when the field is visible
           ),
@@ -289,7 +222,7 @@ Future<void> _generateAndViewPDF() async {
                 isSearchFieldVisible = !isSearchFieldVisible; 
                 if (isSearchFieldVisible) {
                   _searchController.clear(); 
-                  _filterSearchResults('');
+                 // _filterSearchResults('');
                 }
               });
                     },
@@ -395,7 +328,20 @@ Future<void> _generateAndViewPDF() async {
               ),
             ),
             Expanded(
-              child: ListView.builder(
+            child: FutureBuilder<List<dynamic>>(
+              future: reportget, 
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (snapshot.hasData) {
+                  reportlist = snapshot.data!;
+
+                  return   Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 18),
+                    child: ListView.builder(
                   itemCount: reportlist.length,
                 itemBuilder: (context, index) {
                   
@@ -422,7 +368,14 @@ Future<void> _generateAndViewPDF() async {
                   );
                 },
               ),
+                  ),
+                );
+                } else {
+                  return Center(child: Text("No data available"));
+                }
+              },
             ),
+          ),
             Padding(
               padding: const EdgeInsets.only(left: 240),
               child: Row(
@@ -504,7 +457,7 @@ Future<void> _generateAndViewPDF() async {
               Center(
                child: GestureDetector(
                 onTap: () {
-                  _filterSearchResults(_filterController.text);
+                  //_filterSearchResults(_filterController.text);
                     Navigator.pop(context);
                 },
                  child: Container(

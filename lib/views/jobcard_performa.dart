@@ -472,8 +472,20 @@ Future<bool> post_performa2() async {
                   ),
                 ),
                  Padding(
-                   padding: const EdgeInsets.only(top: 6),
+                   padding: const EdgeInsets.only(right: 23),
                    child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 7),
+                    decoration: BoxDecoration(
+                                 color: Colors.white,
+                                 boxShadow: [
+                           BoxShadow(
+                             color: Appcolors().searchTextcolor,
+                             blurRadius: 2.0,
+                             spreadRadius: 0.0,
+                             offset: Offset(0.0, 0.0),
+                           )
+                         ],
+                               ),
                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                children:  [
                                                 SizedBox(width: 10,),
@@ -495,109 +507,130 @@ Future<bool> post_performa2() async {
                  ),
                  Expanded(
                 child: Padding(
-          padding: const EdgeInsets.only(right: 20),
-          child: ListView.builder(
-            itemCount: billDetails.length + 1,
-            itemBuilder: (context, index) {
-              if (index == billDetails.length) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey.shade400, width: 1),
+          padding: const EdgeInsets.only(right: 23),
+          child: Container(
+            height: MediaQuery.of(context).size.height,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+        BoxShadow(
+          color: Appcolors().searchTextcolor,
+          blurRadius: 2.0,
+          spreadRadius: 0.0,
+          offset: Offset(0.0, 0.0),
+        )
+      ],
+            ),
+            child: ListView.builder(
+              itemCount: billDetails.length + 1,
+              itemBuilder: (context, index) {
+                if (index == billDetails.length) {
+                  return Container(
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey.shade400, width: 1),
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Center(child: Text("${index + 1}"))),
-                      SizedBox(width: 15),
-                      Expanded(
-                        flex: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: TextField(
-                            controller: _lobourschedulecontroller,
-                            decoration: InputDecoration(
-                              hintText: "Labour Schedule",
-                              hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
-                             border: InputBorder.none,isDense: false
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Center(child: Text("${index + 1}"))),
+                        SizedBox(width: 15),
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: TextField(
+                              controller: _lobourschedulecontroller,
+                              decoration: InputDecoration(
+                                hintText: "Labour Schedule",
+                                hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
+                               border: InputBorder.none,isDense: false
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                     SizedBox(width: 25),
-                      Expanded(flex: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: TextField(
-                            controller: _amountcontroller,
-                            decoration: InputDecoration(
-                              hintText: "Amount",
-                              hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
-                              border: InputBorder.none,isDense: false
+                       SizedBox(width: 25),
+                        Expanded(flex: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: TextField(
+                              controller: _amountcontroller,
+                              decoration: InputDecoration(
+                                hintText: "Amount",
+                                hintStyle: TextStyle(fontSize: 10,fontWeight: FontWeight.w300),
+                                border: InputBorder.none,isDense: false
+                              ),
+                              keyboardType: TextInputType.number,
                             ),
-                            keyboardType: TextInputType.number,
                           ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      IconButton(
-                        onPressed: () {
-                          if (_lobourschedulecontroller.text.isNotEmpty &&
-                              _amountcontroller.text.isNotEmpty) {
-                            setState(() {
-                              billDetails.add({
-                                'billName': _lobourschedulecontroller.text,
-                                'amount': _amountcontroller.text,
+                        SizedBox(width: 10),
+                        IconButton(
+                          onPressed: () {
+                            if (_lobourschedulecontroller.text.isNotEmpty &&
+                                _amountcontroller.text.isNotEmpty) {
+                              setState(() {
+                                billDetails.add({
+                                  'billName': _lobourschedulecontroller.text,
+                                  'amount': _amountcontroller.text,
+                                });
+                                _lobourschedulecontroller.clear();
+                                _amountcontroller.clear();
                               });
-                              _lobourschedulecontroller.clear();
-                              _amountcontroller.clear();
-                            });
-                          } else {
-                            Fluttertoast.showToast(msg: "Enter all fields!");
-                          }
-                        },
-                        icon: Icon(Icons.add_box_outlined, color: Colors.black,size: 20,),
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-               
-                return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey.shade400, width: 1),
+                            } else {
+                              Fluttertoast.showToast(msg: "Enter all fields!");
+                            }
+                          },
+                          icon: Icon(Icons.add_box_outlined, color: Colors.black,size: 20,),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(child: Center(child: Text("${index + 1}"))),
-                      SizedBox(width: 15),
-                      Expanded(
-                        flex: 2,
-                        child: Text(billDetails[index]['billName'] ?? ''),
+                  );
+                } else {
+                 
+                  return Container(
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey.shade400, width: 1),
                       ),
-                      SizedBox(width: 15),
-                      Expanded(
-                        child: Text(billDetails[index]['amount'] ?? ''),
-                      ),
-                      SizedBox(width: 10),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            billDetails.removeAt(index);
-                          });
-                        },
-                        icon: Icon(Icons.delete, color: Colors.red,size: 20,),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(child: Center(child: Text("${index + 1}"))),
+                        SizedBox(width: 15),
+                        Expanded(
+                          flex: 2,
+                          child: Text(billDetails[index]['billName'] ?? ''),
+                        ),
+                        SizedBox(width: 15),
+                        Expanded(
+                          
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(billDetails[index]['amount'] ?? ''),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              billDetails.removeAt(index);
+                            });
+                          },
+                          icon: Icon(Icons.delete, color: Colors.red,size: 20,),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+            ),
           ),
                 ),
               ),
