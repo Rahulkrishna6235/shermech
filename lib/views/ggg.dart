@@ -1263,3 +1263,306 @@ class _AutoCompleteWithFutureBuilderState
 
   
 // }
+// import 'package:flutter/material.dart';
+// import 'api_jobcard_repository.dart'; // Import the API repository class
+
+// class JobCardScreen extends StatefulWidget {
+//   @override
+//   _JobCardScreenState createState() => _JobCardScreenState();
+// }
+
+// class _JobCardScreenState extends State<JobCardScreen> {
+//   int _selectedIndex = 0; // To track selected tab (0 for Pending Jobcards, 1 for Pending Delivery)
+//   late Future<List<dynamic>> jobcards; // Future variable for storing job card data
+//   TextEditingController _searchController = TextEditingController(); // Controller for search field
+//   List<dynamic> filteredJobcardList = []; // To store filtered job cards
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     jobcards = ApiJobcardRepository().getjobcard(); // Fetch jobcards when screen is loaded
+//   }
+
+//   void _OnTabSelected(int index) {
+//     setState(() {
+//       _selectedIndex = index;
+//     });
+//     // Filter or load different job cards based on tab
+//     // You can update the jobcards here based on the selected tab (index)
+//   }
+
+//   // Filter function for search functionality
+//   void _filterSearchResults() {
+//     setState(() {
+//       filteredJobcardList = jobcards as List<dynamic>; // Filter jobcards based on search query
+//       if (_searchController.text.isNotEmpty) {
+//         filteredJobcardList = filteredJobcardList
+//             .where((jobcard) => jobcard['customername']
+//                 .toLowerCase()
+//                 .contains(_searchController.text.toLowerCase()))
+//             .toList();
+//       }
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: Text("Job Cards")),
+//       body: Column(
+//         children: [
+//           SizedBox(height: 5),
+
+//           // Tab Buttons
+//           Tab(
+//             child: Padding(
+//               padding: const EdgeInsets.only(left: 14, right: 14),
+//               child: Row(
+//                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                 children: [
+//                   GestureDetector(
+//                     onTap: () => _OnTabSelected(0),
+//                     child: Container(
+//                       width: 175,
+//                       height: 33,
+//                       decoration: BoxDecoration(
+//                         borderRadius: BorderRadius.circular(18),
+//                         color: _selectedIndex == 0 ? Color(0xFF0008B4) : Colors.white,
+//                       ),
+//                       child: Center(
+//                         child: Text(
+//                           "PENDING JOBCARDS",
+//                           style: TextStyle(
+//                             fontSize: 14,
+//                             color: _selectedIndex == 0 ? Colors.white : Colors.black,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                   GestureDetector(
+//                     onTap: () => _OnTabSelected(1),
+//                     child: Container(
+//                       width: 175,
+//                       height: 33,
+//                       decoration: BoxDecoration(
+//                         borderRadius: BorderRadius.circular(18),
+//                         color: _selectedIndex == 1 ? Color(0xFF0008B4) : Colors.white,
+//                       ),
+//                       child: Center(
+//                         child: Text(
+//                           "PENDING DELIVERY",
+//                           style: TextStyle(
+//                             fontSize: 14,
+//                             color: _selectedIndex == 1 ? Colors.white : Colors.black,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+
+//           SizedBox(height: 10),
+
+//           // Search Field
+//           Padding(
+//             padding: const EdgeInsets.only(left: 11, right: 10),
+//             child: Container(
+//               height: 39,
+//               width: 358,
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(8),
+//                 color: Colors.white,
+//               ),
+//               child: Padding(
+//                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
+//                 child: Row(
+//                   children: [
+//                     GestureDetector(
+//                       onTap: _filterSearchResults,
+//                       child: Icon(Icons.search, color: Colors.grey, size: 18),
+//                     ),
+//                     SizedBox(width: 5),
+//                     Expanded(
+//                       child: TextField(
+//                         controller: _searchController,
+//                         decoration: InputDecoration(
+//                           hintText: "Search",
+//                           hintStyle: TextStyle(color: Colors.grey),
+//                           border: InputBorder.none,
+//                           contentPadding: EdgeInsets.only(bottom: 12),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ),
+
+//           SizedBox(height: 20),
+
+//           // Displaying Jobcards
+//           Expanded(
+//             child: FutureBuilder<List<dynamic>>(
+//               future: jobcards, // Fetch jobcards data asynchronously
+//               builder: (context, snapshot) {
+//                 if (snapshot.connectionState == ConnectionState.waiting) {
+//                   return Center(child: CircularProgressIndicator());
+//                 } else if (snapshot.hasError) {
+//                   return Center(child: Text("Error: ${snapshot.error}"));
+//                 } else if (snapshot.hasData) {
+//                   // If jobcards data is available
+//                   filteredJobcardList = snapshot.data!;
+
+//                   return ListView.separated(
+//                     separatorBuilder: (context, index) => SizedBox(height: 20),
+//                     itemCount: filteredJobcardList.length,
+//                     itemBuilder: (BuildContext context, int index) {
+//                       int sn = index + 1;
+//                       return Padding(
+//                         padding: const EdgeInsets.only(left: 26, right: 26),
+//                         child: Container(
+//                           width: 358,
+//                           height: 260,
+//                           decoration: BoxDecoration(
+//                             borderRadius: BorderRadius.only(
+//                               topLeft: Radius.circular(5),
+//                               topRight: Radius.circular(5),
+//                             ),
+//                             color: Color(0xFFFFFFFF),
+//                           ),
+//                           child: Column(
+//                             children: [
+//                               Container(
+//                                 width: 358,
+//                                 height: 35,
+//                                 decoration: BoxDecoration(
+//                                   borderRadius: BorderRadius.only(
+//                                     topLeft: Radius.circular(5),
+//                                     topRight: Radius.circular(5),
+//                                   ),
+//                                   color: Color(0xFF0008B4),
+//                                 ),
+//                                 child: Row(
+//                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                                   children: [
+//                                     Padding(
+//                                       padding: const EdgeInsets.only(left: 15),
+//                                       child: Text("SN :  $sn", style: TextStyle(color: Colors.white)),
+//                                     ),
+//                                     PopupMenuButton<String>(
+//                                       color: Colors.white,
+//                                       onSelected: (value) {
+//                                         if (value == 'Edit') {
+//                                           // Edit action
+//                                         } else if (value == 'Delete') {
+//                                           // Delete action
+//                                         }
+//                                       },
+//                                       itemBuilder: (BuildContext context) => [
+//                                         PopupMenuItem(
+//                                           value: 'Edit',
+//                                           child: Row(
+//                                             children: [
+//                                               Icon(Icons.edit, color: Colors.blue),
+//                                               Text('Edit'),
+//                                             ],
+//                                           ),
+//                                         ),
+//                                         PopupMenuItem(
+//                                           value: 'Delete',
+//                                           child: Row(
+//                                             children: [
+//                                               Icon(Icons.delete, color: Colors.red),
+//                                               Text('Delete'),
+//                                             ],
+//                                           ),
+//                                         ),
+//                                       ],
+//                                       icon: Icon(Icons.more_horiz, color: Colors.white),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                               SizedBox(height: 5),
+//                      Padding(
+//                        padding: const EdgeInsets.only(left: 15),
+//                        child: Row(
+//                         children: [
+//                           _listcontents("DATE"),
+//                         Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['arivedate']}  ",style: filedFonts())),
+//                         ],
+//                        ),
+//                      ),
+//                                           SizedBox(height: 5,),
+//                      Padding(
+//                        padding: const EdgeInsets.only(left: 15),
+//                        child: Row(
+//                         children: [
+//                           _listcontents("JOBCARD NO"),
+//                         Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['jobcardno']} ",style: filedFonts())),
+//                         ],
+//                        ),
+//                      ),
+//                                 SizedBox(height: 5,),
+//                      Padding(
+//                        padding: const EdgeInsets.only(left: 15),
+//                        child: Row(
+//                         children: [
+//                           _listcontents("CUSTOMER NAME"),
+//                         Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['customername']} ",style: filedFonts())),
+//                         ],
+//                        ),
+//                      ),
+//                                           SizedBox(height: 5,),
+//                      Padding(
+//                        padding: const EdgeInsets.only(left: 15),
+//                        child: Row(
+//                         children: [
+//                           _listcontents("MODEL"),
+//                         Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['model']}",style: filedFonts())),
+//                         ],
+//                        ),
+//                      ),
+//                                           SizedBox(height: 5,),
+//                      Padding(
+//                        padding: const EdgeInsets.only(left: 15),
+//                        child: Row(
+//                         children: [
+//                           _listcontents("REGISTRATION NO"),
+//                         Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['registerno']}",style: filedFonts())),
+//                         ],
+//                        ),
+//                      ),
+//                                           SizedBox(height: 5,),
+//                      Padding(
+//                        padding: const EdgeInsets.only(left: 15),
+//                        child: Row(
+//                         children: [
+//                           _listcontents("REMARK"),
+//                         Expanded(flex: 3, child: Text(" :   ${jobcardList[index]['remark']} ",style: filedFonts(),)),
+//                         ],
+//                        ),
+//                      )
+//                             ],
+//                           ),
+//                         ),
+//                       );
+//                     },
+//                   );
+//                 } else {
+//                   return Center(child: Text("No data available"));
+//                 }
+//               },
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+  

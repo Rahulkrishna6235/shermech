@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:sher_mech/ApiRepository/jobcardlist.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
@@ -56,237 +57,45 @@ bool isEditing = false;
   @override
   void initState() {
     super.initState();
-    // If jobCardId is provided (i.e., for editing), fetch the data
-    if (widget.jobCardId != null) {
-      isEditing = true;
-      _fetchJobCardData(widget.jobCardId!);
-    }
+   
   }
- Future<void> _fetchJobCardData(int jobCardId) async {
-    String query = 'SELECT * FROM Newjobcard WHERE id = $jobCardId';
-    setState(() {
-      isLoading = true;
-    });
+final ApiJobcardRepository _apiJobcardRepository = ApiJobcardRepository();
 
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          Map<String, dynamic> data = json.decode(result)[0]; // Assuming one result
-          
-          // Populate the form controllers with data
-          _jobcardnoController.text = data['jobcardno'];
-          _customernameController.text = data['customername'];
-          _locationController.text = data['location'];
-          _mobileController.text = data['mobilenumber'];
-          _makeController.text = data['make'];
-          _modelController.text = data['model'];
-          _registernoController.text = data['registerno'];
-          _adressnoController.text = data['adress'];
-          _technicionController.text = data['Technicians'];
-          _ariveDateController.text = data['arivedate'];
-          _deliverDateController.text = data['deliverdate'];
-          _customervoiceController.text = data['customervoice'];
-          _technicianvoiceController.text = data['technicianvoke'];
-          _chassisnoController.text = data['chassisno'];
-          _kilometerController.text = data['kilometer'];
-          _jobadvisorController.text = data['selectjobadvisor'];
-        }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
+Future<void> submitJobCard() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      Map<String, dynamic> jobCardData = {
+        'jobcardno': _jobcardnoController.text,
+        'arivedate': _ariveDateController.text,
+        'customername': _customernameController.text,
+        'location': _locationController.text,
+        'mobilenumber': _mobileController.text,
+        'make': _makeController.text,
+        'model': _modelController.text,
+        'registerno': _registernoController.text,
+        'chassisno': _chassisnoController.text,
+        'kilometer': _kilometerController.text,
+        'selectjobadvisor': _jobadvisorController.text,
+        'technicianvoke': _technicianvoiceController.text,
+        'deliverdate': _deliverDateController.text,
+        'adress': _adressnoController.text,
+        'technicians': _technicionController.text,
+        'customervoice': _customervoiceController.text,
 
- Future<bool> post_newjobcard() async {
-  if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-    setState(() {
-      isLoading = true;
-    });
-    
-    // Get values from controllers and sanitize inputs
-    String Jobcardno = _jobcardnoController.text.replaceAll("'", "''");
-    String Customername = _customernameController.text.replaceAll("'", "''");
-    String Location = _locationController.text.replaceAll("'", "''");
-    String Mobile = _mobileController.text.replaceAll("'", "''");
-    String Make = _makeController.text.replaceAll("'", "''");
-    String Model = _modelController.text.replaceAll("'", "''");
-    String Register = _registernoController.text.replaceAll("'", "''");
-    String Adress = _adressnoController.text.replaceAll("'", "''");
-    String Chasis = _chassisnoController.text.replaceAll("'", "''");
-    String Kilometer = _kilometerController.text.replaceAll("'", "''");
-    String Jobadvisor = _jobadvisorController.text.replaceAll("'", "''");
-    String Technician = _technicionController.text.replaceAll("'", "''");
-    String Date_arive = _ariveDateController.text.replaceAll("'", "''");
-    String Date_deliver = _deliverDateController.text.replaceAll("'", "''");
-    String Customervoice = _customervoiceController.text.replaceAll("'", "''");
-    String Technicianvoice = _technicianvoiceController.text.replaceAll("'", "''");
+      };
 
-    try {
-      bool isConnected = await connect();
-      if (!isConnected) {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-        setState(() {
-          isLoading = false;
-        });
-        return false;
-      }
+      try {
+        bool success = await _apiJobcardRepository.postNewJobCard(jobCardData);
 
-      // Fix the SQL query
-      String query = """
-        INSERT INTO Newjobcard (
-          customername, location, mobilenumber, make, model, registerno, chassisno, kilometer, 
-          selectjobadvisor, technicianvoke, arivedate, deliverdate, jobcardno, adress, Technicians, customervoice
-        ) 
-        VALUES (
-          '$Customername', '$Location', '$Mobile', '$Make', '$Model', '$Register', '$Chasis', '$Kilometer', 
-          '$Jobadvisor', '$Technicianvoice', '$Date_arive', '$Date_deliver', '$Jobcardno', '$Adress', '$Technician', '$Customervoice'
-        )
-      """;
-      
-      String result = await sqlConnection.writeData(query);
-      Map<String, dynamic> valueMap = json.decode(result);
-
-      if (valueMap['affectedRows'] == 1) {
-        // Clear all text controllers
-        _jobcardnoController.clear();
-        _customernameController.clear();
-        _locationController.clear();
-        _makeController.clear();
-        _mobileController.clear();
-        _modelController.clear();
-        _registernoController.clear();
-        _adressnoController.clear();
-        _customervoiceController.clear();
-        _technicianvoiceController.clear();
-        _technicionController.clear();
-        _ariveDateController.clear();
-        _deliverDateController.clear();
-        _kilometerController.clear();
-        _jobadvisorController.clear();
-        _chassisnoController.clear();
-
-        await getData_jobcard();
-        Fluttertoast.showToast(msg: "Added Successfully");
-        return true;
-      } else {
-        Fluttertoast.showToast(msg: "Failed to Add");
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-  return false;
-}
-
-  Future<void> getData_jobcard() async {
-    String query = 'SELECT * FROM Newjobcard ORDER BY id';
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
-          setState(() {
-            jobcardList = List<Map<String, dynamic>>.from(data);
-          });
-         // int siNo=1;
-          // for(var vehiclemake in vehicleList){
-          //     vehiclemake['SiNo']=siNo++;
-          // }
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card added successfully')));
         } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            jobcardList = [];
-          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add job card')));
         }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
-
-Future update_jobcard(
-    String ariveDate,
-    String jobcardno,
-    String customername,
-    String model,
-    String registerno,
-   // int siNo, 
-    int jobCardId, 
-) async {
-  if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-    setState(() {
-      isLoading = true;
-    });
-    String Jobcardno = jobcardno.replaceAll("'", "''");
-    String Customername = customername.replaceAll("'", "''");
-    String Model = model.replaceAll("'", "''");
-    String Register = registerno.replaceAll("'", "''");
-    String Date_arive = ariveDate.replaceAll("'", "''");
-
-    try {
-      bool isConnected = await connect();
-      if (!isConnected) {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-        setState(() {
-          isLoading = false;
-        });
-        return false;
-      }
-
-      String query = """
-        UPDATE Newjobcard 
-        SET 
-          customername = '$Customername', model = '$Model', registerno = '$Register', 
-          arivedate = '$Date_arive' 
-        WHERE id = $jobCardId
-      """;
-
-      String result = await sqlConnection.writeData(query);
-      Map<String, dynamic> valueMap = json.decode(result);
-
-      if (valueMap['affectedRows'] == 1) {
-        Fluttertoast.showToast(msg: "Updated successfully");
-        await getData_jobcard();  
-        Navigator.pop(context);  
-        return true;
-      } else {
-        Fluttertoast.showToast(msg: "Failed to update");
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-
-    return false;
-  }
-}
-
 
   Future<File> generateInvoice(List<Map<String, dynamic>> jobcardList) async {
   final pdf = pw.Document();
@@ -602,7 +411,7 @@ Future<void> _generateinvoice() async {
                                                 borderRadius: BorderRadius.circular(5),
                                                 borderSide: BorderSide(color: Appcolors().searchTextcolor),
                                                                                            ),
-                                                                                           hintStyle: TextStyle(color: Color(0xFF948C93)),
+                                                                                           hintStyle: TextStyle(color: Color(0xFF948C93),fontSize: 12),
                                                                                            hintText: "Select Date",
                                                                                          ),
                                                                                          autofocus: true,
@@ -688,18 +497,21 @@ Future<void> _generateinvoice() async {
         
                       
                                             SizedBox(height: 19,),
-                       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Container(
+                      child: Column(
+                        children: [
+                            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                         _newjobtxtShortfield("Make",_makeController),
                         _newjobtxtShortfield("Model",_modelController)
                        ],) ,
                                             SizedBox(height: 20,),
-                                            Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                        _newjobtxtShortfield("Register No",_registernoController),
-                        _newjobtxtShortfield("Chassis No",_chassisnoController)
-                       ],) ,
+                                         Row(
+                                                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                   children: [
+                                                                 _newjobtxtShortfield("Register No",_registernoController),
+                                                                 _newjobtxtShortfield("Chassis No",_chassisnoController)
+                                                                ],) ,
                                             SizedBox(height: 20,),
         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -707,74 +519,79 @@ Future<void> _generateinvoice() async {
                         _newjobtxtShortfield("Kilometer",_kilometerController),
                         _newjobtxtShortfield("Select Job Advisor",_jobadvisorController)
                        ],) ,
-                                            SizedBox(height: 20,),
-        
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                        
-                        _newjobtxtShortfield("Select Technicion",_technicionController),
-                         Container(
-           
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                  
-                  Text("Expected Date",style: formFonts(16, Colors.black),),
-                  Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
-                ],),
-                SizedBox(height: 10,),
-               Container(
-          height: 45,
-                        width: 171,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: TextField(
-            onTap: () async {
-              DateTime? selectedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(1900), 
-                lastDate: DateTime(2100), 
-              );
-              if (selectedDate != null) {
-                String formattedDate = DateFormat('MM/dd/yyyy').format(selectedDate);
-                
-                _deliverDateController.text = formattedDate;
-              }
-            },
-            controller: _deliverDateController,
-            readOnly: true, 
-            decoration: InputDecoration(
-              isDense: true,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: Appcolors().searchTextcolor),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: Appcolors().searchTextcolor),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: Appcolors().searchTextcolor),
-              ),
-              hintStyle: TextStyle(color: Appcolors().searchTextcolor),
-              hintText: "Select Date",
-            ),
-            autofocus: true,
-          ),
-        ),
-              ],
-            ),
-          )
-                       ],) ,   
-                                            SizedBox(height: 20,),
+                       SizedBox(height: 20,),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 3),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                          
+                          _newjobtxtShortfield("Select Technicion",_technicionController),
+                           Container(
+                                     
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                            
+                                            Text("Expected Date",style: formFonts(16, Colors.black),),
+                                            Text("*",style: TextStyle(fontSize: 16,color: Color(0xFFE22E37)),)
+                                          ],),
+                                          SizedBox(height: 10,),
+                                         Container(
+                                    height: 45,
+                          width: 171,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: TextField(
+                                      onTap: () async {
+                                        DateTime? selectedDate = await showDatePicker(
+                                          context: context,
+                                          initialDate: DateTime.now(),
+                                          firstDate: DateTime(1900), 
+                                          lastDate: DateTime(2100), 
+                                        );
+                                        if (selectedDate != null) {
+                                          String formattedDate = DateFormat('MM/dd/yyyy').format(selectedDate);
+                                          
+                                          _deliverDateController.text = formattedDate;
+                                        }
+                                      },
+                                      controller: _deliverDateController,
+                                      readOnly: true, 
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(5),
+                                          borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(5),
+                                          borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(5),
+                                          borderSide: BorderSide(color: Appcolors().searchTextcolor),
+                                        ),
+                                        hintStyle: TextStyle(color: Appcolors().searchTextcolor,fontSize: 12),
+                                        hintText: "Select Date",
+                                      ),
+                                      autofocus: true,
+                                    ),
+                                  ),
+                                        ],
+                                      ),
+                                    )
+                                                 ],),
+                        )
+                        ],
+                      ),
+                    ) ,              
+          SizedBox(height: 20,),
             Padding(
               padding: const EdgeInsets.only(left: 26),
               child: _Nnewjobtxtfield("Customer Voice", _customervoiceController),
@@ -804,17 +621,17 @@ Future<void> _generateinvoice() async {
                    bool success=true;
                     if (isEditing) {
                      // success = await updateVehicle(_selectedSiNo!, _vehiclenameController.text);
-                    success =await update_jobcard(
-                       _ariveDateController.text, 
-        _jobcardnoController.text,  
-        _customernameController.text, 
-        _modelController.text, 
-        _registernoController.text, 
-        //siNo ,
-        widget.jobCardId!,
-                      );
+        //             success =await update_jobcard(
+        //                _ariveDateController.text, 
+        // _jobcardnoController.text,  
+        // _customernameController.text, 
+        // _modelController.text, 
+        // _registernoController.text, 
+        // //siNo ,
+        // widget.jobCardId!,
+        //               );
                     } else {
-                      success = await post_newjobcard();
+                      submitJobCard();
                     }
                     if (success) {
                        MaterialPageRoute(builder: (_) => Jobcards());

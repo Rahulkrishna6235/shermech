@@ -4,6 +4,8 @@ import 'package:easy_autocomplete/easy_autocomplete.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sher_mech/ApiRepository/jobcardlist.dart';
+import 'package:sher_mech/ApiRepository/pendingjobcard.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/font.dart';
@@ -24,48 +26,66 @@ class _PendingCardState extends State<PendingCard> {
   final TextEditingController _statusController=TextEditingController();
   final _formkey= GlobalKey<FormState>();
  List pending=[];
- List pendingjcardList=[];
+ List <dynamic>pendingjcardList=[];
+ 
   bool isLoading=false;
-  Future<void> getData_jobcard() async {
-    String query = 'SELECT * FROM Newjobcard ORDER BY id';
-    setState(() {
-      isLoading = true;
-    });
+ late Future<List<dynamic>> jobcards; 
+ List<String> jobcardNumbers = [];
+  List<dynamic> jobcardNos = []; 
+final ApiPendingJobcardrepo _apiJobcardRepository = ApiPendingJobcardrepo();
 
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
+ Future<void> submitJobCard() async {
+    if (_formkey.currentState?.validate() ?? false) {
+      Map<String, dynamic> jobCardData = {
+        'cardno': _cardnumberController.text,
+        'customerName': _nameController.text,
+        'model': _registrationtroller.text,
+        'regno': _modelController.text,
+        'status': _statusController.text,
+        
+      };
+
+      try {
+        bool success = await _apiJobcardRepository.post_pending_jcard(jobCardData);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card added successfully')));
+          fetchJobcards();
           setState(() {
-            pending = List<Map<String, dynamic>>.from(data);
-            //filteredJobcardList = List.from(JobcardbillList); 
+           
           });
         } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            pending = [];
-            //filteredJobcardList = [];
-          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add job card')));
         }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
-  void onJobcardSelected(String jobcardNo) {
-  final selectedJobcard = pending.firstWhere(
+  Future<void> fetchJobcards() async {
+  try {
+    final fetchedJobcards = await ApiJobcardRepository().getjobcard();
+    setState(() {
+      jobcardNos = fetchedJobcards;  
+      jobcardNumbers = fetchedJobcards
+          .map<String>((jobcard) => jobcard['jobcardno'].toString()) // Extract jobcardno
+          .toList();  
+    });
+  } catch (e) {
+    setState(() {
+      Fluttertoast.showToast(msg: 'Failed to fetch jobcards: $e');
+    });
+  }
+}
+
+  
+   void onJobcardSelected(String jobcardNo) {
+  final selectedJobcard = jobcardNos.firstWhere(
     (jobcard) => jobcard['jobcardno'] == jobcardNo,
-    orElse: () => <String, dynamic>{} 
+    orElse: () => <String, dynamic>{},
   );
+
   if (selectedJobcard.isNotEmpty) {
     setState(() {
       _cardnumberController.text = selectedJobcard['jobcardno'] ?? '';
@@ -79,102 +99,13 @@ class _PendingCardState extends State<PendingCard> {
     });
   }
 }
-Future<bool> post_pendingjcard() async {
-  if (_formkey.currentState != null && _formkey.currentState!.validate()) {
-    setState(() {
-      isLoading = true;
-    });
-
-    // Escape special characters to prevent SQL injection
-    String cardno = _cardnumberController.text.replaceAll("'", "''");
-    String Cusname = _nameController.text.replaceAll("'", "''");
-    String model = _modelController.text.replaceAll("'", "''");
-    String reg = _registrationtroller.text.replaceAll("'", "''");
-    String status = _statusController.text.replaceAll("'", "''"); // Handle status properly
-
-    try {
-      bool isConnected = await connect();
-      if (!isConnected) {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-        setState(() {
-          isLoading = false;
-        });
-        return false;
-      }
-
-      String query = """
-        INSERT INTO Pendingjobcard (
-          cardno, customername, model, regno, status
-        ) 
-        VALUES (
-          '$cardno', '$Cusname', '$model', '$reg', '$status'
-        )
-      """;
-
-      String result = await sqlConnection.writeData(query);
-      Map<String, dynamic> valueMap = json.decode(result);
-
-      if (valueMap['affectedRows'] == 1) {
-        _cardnumberController.clear();
-        _nameController.clear();
-        _modelController.clear();
-        _registrationtroller.clear();
-        _statusController.clear();
-        await getData_jobcard();
-        Fluttertoast.showToast(msg: "Added Successfully");
-        return true;
-      } else {
-        Fluttertoast.showToast(msg: "Failed to Add");
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-  return false;
-}
-Future<void> get_pendingjcard() async {
-    String query = 'SELECT * FROM Pendingjobcard ORDER BY id';
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
-          setState(() {
-            pendingjcardList = List<Map<String, dynamic>>.from(data);
-          });
-        } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            pendingjcardList = [];
-          });
-        }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-@override
+ @override
   void initState() {
     super.initState();
-    getData_jobcard();
-  post_pendingjcard();
- get_pendingjcard();
+    jobcards =ApiPendingJobcardrepo().get_pending_jcard();
+    fetchJobcards();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +134,17 @@ Future<void> get_pendingjcard() async {
       body: Container(
         padding: EdgeInsets.symmetric(vertical: 20),
         child:  Expanded(
-            child: ListView.separated(
+            child: FutureBuilder<List<dynamic>>(
+              future: jobcards, 
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (snapshot.hasData) {
+                  pendingjcardList = snapshot.data!;
+
+                  return  ListView.separated(
              separatorBuilder: (context, index) => SizedBox(height: 20),
               itemCount: pendingjcardList.length,
               itemBuilder: (BuildContext content,int index){
@@ -297,7 +238,12 @@ Future<void> get_pendingjcard() async {
                   ],),
                 ),
               );
-            }),
+            });
+                } else {
+                  return Center(child: Text("No data available"));
+                }
+              },
+            ),
           ),
       ),
        floatingActionButton: GestureDetector(
@@ -341,56 +287,63 @@ Future<void> get_pendingjcard() async {
               key: _formkey,
               child: Column(
                 children: [
-                  Container(
-                  width: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    color: Colors.white,
-                    border: Border.all(color: Appcolors().searchTextcolor),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(width: 5),
-                      Expanded(
-                        child: Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Container(width: 200,
-                child: EasyAutocomplete(
-                  controller: _cardnumberController,
-                  suggestionTextStyle: filedFonts(),
-                  suggestions: pending
-                      .map((jobcard) => jobcard['jobcardno'].toString())
-                      .toList(),
-                  onSubmitted: (value) {
-                    onJobcardSelected(value);
-                  },
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true, // Make the input compact
-                    contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
-                  ),
-                ),
-              ),
-                        ),
+                      Text("JobcardNo",style: formFonts(14, Colors.black),),
+          SizedBox(height: 3,),
+                      Container(
+                      width: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: Colors.white,
+                        border: Border.all(color: Appcolors().searchTextcolor),
                       ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(width: 5),
+                          Expanded(
+                            child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 2),
+                                    child: Container(width: 200,
+                                      child: EasyAutocomplete(
+                      controller: _cardnumberController,
+                      suggestionTextStyle: filedFonts(),
+                      suggestions: jobcardNos
+                          .map((jobcard) => jobcard['jobcardno'].toString())
+                          .toList(),
+                      onSubmitted: (value) {
+                        onJobcardSelected(value);
+                      },
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true, // Make the input compact
+                        contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
+                      ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                                      ),
                     ],
                   ),
-                ),
                   const SizedBox(height: 15),
                   
-                  _field(_nameController),
+                  _field(_nameController,"Name"),
                   SizedBox(height: 10,),
-                  _field(_modelController),
+                  _field(_modelController,"Model"),
                   SizedBox(height: 10,),
-                  _field(_registrationtroller),
+                  _field(_registrationtroller,"RegistrationNo"),
                   SizedBox(height: 10,),
-                  _field(_statusController),
+                  _field(_statusController,"Status"),
                   SizedBox(height: 10,),
               
                   GestureDetector(
                     onTap: () async {
-                post_pendingjcard();
+                submitJobCard();
                 Navigator.pop(context);
                     },
                     child: Center(
@@ -416,30 +369,36 @@ Future<void> get_pendingjcard() async {
     );
   }
 
-  Widget _field (TextEditingController controller){
-    return Container(
-      width: 200,
-      child: TextFormField(
-                      controller: controller,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a vehicle model name';
-                        }
-                        return null;
-                      },  
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: true,
-                        fillColor: Appcolors().scafoldcolor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5),
-                          borderSide: BorderSide(color: Appcolors().maincolor),
+  Widget _field (TextEditingController controller,String text){
+    return Column(crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("$text",style: formFonts(14, Colors.black),),
+          SizedBox(height: 3,),
+        Container(
+          width: 200,
+          child: TextFormField(
+                          controller: controller,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a vehicle model name';
+                            }
+                            return null;
+                          },  
+                          decoration: InputDecoration(
+                            isDense: true,
+                            filled: true,
+                            fillColor: Appcolors().scafoldcolor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(color: Appcolors().maincolor),
+                            ),
+                            
+                            hintStyle: TextStyle(color: Color(0xFF948C93)),
+                          ),
+                          autofocus: true,
                         ),
-                        
-                        hintStyle: TextStyle(color: Color(0xFF948C93)),
-                      ),
-                      autofocus: true,
-                    ),
+        ),
+      ],
     );
   }
     Widget _listcontents(String listtext) {
