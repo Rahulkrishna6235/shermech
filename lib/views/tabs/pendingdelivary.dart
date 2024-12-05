@@ -49,6 +49,16 @@ Future<void> submitJobCard() async {
         bool success = await _apiJobcardRepository.post_pendingdelivary(jobCardData);
 
         if (success) {
+          setState(() {
+            pendingjcardList.add({
+              'id': pendingjcardList.length + 1,  
+              'cardno': _cardnumberController.text,
+              'customerName': _nameController.text,
+        'model': _registrationtroller.text,
+        'regno': _modelController.text,
+        'status': _statusController.text,
+            });
+          });
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card added successfully')));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add job card')));
