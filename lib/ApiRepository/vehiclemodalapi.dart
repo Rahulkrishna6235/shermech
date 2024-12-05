@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class ApiVehicleModelRepository{
@@ -22,23 +23,44 @@ class ApiVehicleModelRepository{
  }
 
  Future<bool> post_vehiclemodel(Map<String, dynamic> Data) async {
+  try {
+    final response = await http.post(
+      Uri.parse("http://192.168.0.128:3000/vehiclemodel/post"),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(Data), 
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 201) {
+      return true; 
+    } else {
+      throw Exception('Failed to add vehicle model');
+    }
+  } catch (e) {
+    print('Error: $e');
+    throw Exception('Error: $e');
+  }
+}
+
+
+  Future<void> deleteModel(int id) async {
     try {
-      
-      final response = await http.post(
-        Uri.parse("http://192.168.0.128:3000/vehiclemodel/post"),
-        headers: {
-          'Content-Type': 'application/json', 
-        },
-        body: json.encode(Data), 
+      final response = await http.delete(
+        Uri.parse('http://192.168.0.128:3000/vehiclemodel/delete/$id'),
       );
-      
-      if (response.statusCode == 201) {
-        return true;
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(msg: 'Job card deleted successfully');
+       
+      } else if (response.statusCode == 404) {
+        Fluttertoast.showToast(msg: 'Job card not found');
       } else {
-        throw Exception('Failed to add job card');
+        Fluttertoast.showToast(msg: 'Error: ${response.body}');
       }
-    } catch (e) {
-      throw Exception('Error: $e');
+    } catch (error) {
+      Fluttertoast.showToast(msg: 'Error: $error');
     }
   }
 }

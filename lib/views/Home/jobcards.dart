@@ -29,7 +29,7 @@ class _JobcardsState extends State<Jobcards> {
   int? _selectedSiNo;
 
   late Future<List<dynamic>> jobcards;
-
+  final ApiJobcardRepository apideletejobcard=ApiJobcardRepository();
   @override
   void initState() {
     super.initState();
@@ -64,7 +64,7 @@ class _JobcardsState extends State<Jobcards> {
 
   void _filterSearchResults() {
     setState(() {
-      filteredJobcardList = jobcards as List<dynamic>; // Filter jobcards based on search query
+      filteredJobcardList = jobcards as List<dynamic>; 
       if (_searchController.text.isNotEmpty) {
         filteredJobcardList = filteredJobcardList
             .where((jobcard) => jobcard['customername']
@@ -72,6 +72,13 @@ class _JobcardsState extends State<Jobcards> {
                 .contains(_searchController.text.toLowerCase()))
             .toList();
       }
+    });
+  }
+
+  Future<void> _deleteJobcard(int id) async {
+    await apideletejobcard.deleteJobcard(id);
+    setState(() {
+      filteredJobcardList.removeWhere((jobcard) => jobcard['id'] == id);
     });
   }
 
@@ -279,7 +286,7 @@ class _JobcardsState extends State<Jobcards> {
                                         if (value == 'Edit') {
                                           // Edit action
                                         } else if (value == 'Delete') {
-                                          // Delete action
+                                          _deleteJobcard(filteredJobcardList[index]['id']);
                                         }
                                       },
                                       itemBuilder: (BuildContext context) => [

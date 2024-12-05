@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:sher_mech/ApiRepository/jobcardPerforma.dart';
+import 'package:sher_mech/ApiRepository/jobcardlist.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
@@ -29,203 +31,116 @@ class _Performa_invoiceState extends State<Performa_invoice> {
   final TextEditingController _amountcontroller= TextEditingController();
 final _formKey = GlobalKey<FormState>();
 
-
-
   List<Map<String,dynamic>> billDetails=[];
   List<String> _vehicleNameSuggestions = [];
   List<String> _modelSuggestions = [];
   List<String> _makeSuggestions = [];
  bool isLoading=false;
  List JobcardbillList = [];
-
-Future<void> getData_jobcard() async {
-    String query = 'SELECT * FROM Newjobcard ORDER BY id';
+late Future<List<dynamic>> performa;
+List<String> jobcardNumbers = [];
+  List<dynamic> jobcardNos = []; 
+  final ApiJobcardPerforma _apiJobcardPerforma=ApiJobcardPerforma();
+  final ApiJobcardPerforma _apiJobcardPerformaperticular=ApiJobcardPerforma();
+ Future<void> fetchJobcards() async {
+  try {
+    final fetchedJobcards = await ApiJobcardRepository().getjobcard();
     setState(() {
-      isLoading = true;
+      jobcardNos = fetchedJobcards;  
+      jobcardNumbers = fetchedJobcards
+          .map<String>((jobcard) => jobcard['jobcardno'].toString()) // Extract jobcardno
+          .toList();  
     });
+  } catch (e) {
+    setState(() {
+      Fluttertoast.showToast(msg: 'Failed to fetch jobcards: $e');
+    });
+  }
+}
 
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
+Future<void> submitPerforma() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      Map<String, dynamic> jobCardData = {
+        'jobcardno': _jobcardnocontroller.text,
+        'date': _datecontroller.text,
+        'jobcarddate': _jobcard_datecontroller.text,
+        'regno': _registercontroller.text,
+        
+        
+      };
+
+      try {
+        bool success = await _apiJobcardPerforma.post_performa(jobCardData);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card added successfully')));
+          
           setState(() {
-            JobcardbillList = List<Map<String, dynamic>>.from(data);
-            //filteredJobcardList = List.from(JobcardbillList); 
+           
           });
         } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            JobcardbillList = [];
-            //filteredJobcardList = [];
-          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add job card')));
         }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
+    }
+  }
+
+Future<void> submitPerformaPerticular() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      Map<String, dynamic> jobCardData = {
+        'jobcardno': _jobcardnocontroller.text,
+        'labourschedule': _lobourschedulecontroller.text,
+        'amount': _amountcontroller.text,
+        
+        
+      };
+
+      try {
+        bool success = await _apiJobcardPerformaperticular.post_Performaperticular(jobCardData);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card added successfully')));
+          
+          setState(() {
+           
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add job card')));
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
 
    void onJobcardSelected(String jobcardNo) {
-    final selectedJobcard =
-        JobcardbillList.firstWhere((jobcard) => jobcard['jobcardno'] == jobcardNo);
+  final selectedJobcard = jobcardNos.firstWhere(
+    (jobcard) => jobcard['jobcardno'] == jobcardNo,
+    orElse: () => <String, dynamic>{},
+  );
+
+  if (selectedJobcard.isNotEmpty) {
     setState(() {
-      _jobcard_datecontroller.text = selectedJobcard['arivedate'] ?? '';
+      _jobcardnocontroller.text = selectedJobcard['jobcardno'] ?? '';
       _registercontroller.text = selectedJobcard['registerno'] ?? '';
-      
+      _jobcard_datecontroller.text = selectedJobcard['arivedate'] ?? '';
+    });
+  } else {
+    setState(() {
+      Fluttertoast.showToast(msg: 'Jobcard not found');
     });
   }
+}
 
   @override
   void initState() {
     super.initState();
-    getData_jobcard();
+    performa=ApiJobcardRepository().getjobcard();
+    fetchJobcards();
   }
-
-  Future<bool> post_performa() async {
-  if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-    setState(() {
-      isLoading = true;
-    });
-
-    String jobcardno = _jobcardnocontroller.text.replaceAll("'", "''");
-    String date = _datecontroller.text.replaceAll("'", "''");
-    String jobcarddate = _jobcard_datecontroller.text.replaceAll("'", "''");
-    String regno = _registercontroller.text.replaceAll("'", "''");
-
-    try {
-      bool isConnected = await connect();
-      if (!isConnected) {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-        setState(() {
-          isLoading = false;
-        });
-        return false;
-      }
-
-      // Step 1: Insert into Jobcard table
-      String query1 = """
-        INSERT INTO Performa (jobcardno, date, jobcarddate, regno)
-        VALUES ('$jobcardno', '$date', '$jobcarddate', '$regno')
-      """;
-
-      String result1 = await sqlConnection.writeData(query1);
-
-      // Check if the first insertion was successful
-      Map<String, dynamic> valueMap1 = json.decode(result1);
-      if (valueMap1['affectedRows'] == 1) {
-       
-
-        // Clear the form fields after successful insertion
-        _jobcardnocontroller.clear();
-        _datecontroller.clear();
-        _jobcard_datecontroller.clear();
-        _registercontroller.clear();
-        _lobourschedulecontroller.clear();
-        _amountcontroller.clear();
-
-        Fluttertoast.showToast(msg: "Added Successfully");
-        return true;
-      } else {
-        Fluttertoast.showToast(msg: "Failed to Add Jobcard");
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-  return false;
-}
-
-Future<bool> post_performa2() async {
-  if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-    setState(() {
-      isLoading = true;
-    });
-
-    String jobcardno = _jobcardnocontroller.text.replaceAll("'", "''");
-
-    List<Map<String, dynamic>> dataToInsert = List.from(billDetails.map((detail) {
-      return {
-        'labourschedule': detail['billName']?? '',
-        'amount': detail['amount'] ?? '',
-      };
-    }));
-
-    try {
-      bool isConnected = await connect();
-      if (!isConnected) {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-        setState(() {
-          isLoading = false;
-        });
-        return false;
-      }
-
-      for (var row in dataToInsert) {
-            Map<String, dynamic> parameters = {
-          '@jobcardno': jobcardno,
-          '@labourschedule': row['labourschedule'],
-          '@amount': row['amount'],
-        };
-
-        String query = "INSERT INTO PerformaPerticular (Jobcardno, labourschedule, amount)"+ 
-        "VALUES ('$jobcardno', '${parameters['@labourschedule']}', '${parameters['@amount']}')";
-
-    
-        // Map<String, dynamic> data = {
-        //   'query': query,
-        //   'parameters': parameters
-        // };
-      //  var value= json.encode(query);
-
-        String result = await sqlConnection.writeData(query);
-        debugPrint(result);
-        debugPrint( result);
-        Map<String, dynamic> valueMap = json.decode(result);
-        debugPrint(result);
-        if (valueMap.containsKey('affectedRows') && valueMap['affectedRows'] != 1) {
-          Fluttertoast.showToast(msg: "Failed to Add Jobcard");
-          return false;
-        }
-      }
-      _jobcardnocontroller.clear();
-      _datecontroller.clear();
-      _jobcard_datecontroller.clear();
-      _registercontroller.clear();
-      _lobourschedulecontroller.clear();
-      _amountcontroller.clear();
-
-      setState(() {
-        billDetails.clear(); 
-      });
-
-      Fluttertoast.showToast(msg: "Added Successfully");
-      return true;
-
-    } catch (e) {
-       debugPrint('Error in writeData: $e');
-      Fluttertoast.showToast(msg: "Error: $e");
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-  return false;
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +212,7 @@ Future<bool> post_performa2() async {
                                  padding: const EdgeInsets.only(bottom: 2),
                                  child: EasyAutocomplete(
                                    controller: _jobcardnocontroller,
-                                   suggestions: JobcardbillList
+                                   suggestions: jobcardNos
                                        .map((jobcard) => jobcard['jobcardno'].toString())
                                        .toList(),
                                    onSubmitted: (value) {
@@ -305,8 +220,8 @@ Future<bool> post_performa2() async {
                                    },
                                    decoration: const InputDecoration(
                                      border: InputBorder.none,
-                                     isDense: true, // Make the input compact
-                                     contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
+                                     isDense: true, 
+                                     contentPadding: EdgeInsets.symmetric(vertical: 8),
                                    ),
                                  ),
                                ),
@@ -641,8 +556,8 @@ Future<bool> post_performa2() async {
       ),
       bottomNavigationBar: GestureDetector(
                   onTap: (){
-                  post_performa();
-                    post_performa2();
+                  submitPerforma();
+                    submitPerformaPerticular();
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(20),

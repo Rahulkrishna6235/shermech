@@ -49,11 +49,18 @@ final ApiPendingJobcardrepo _apiJobcardRepository = ApiPendingJobcardrepo();
         bool success = await _apiJobcardRepository.post_pending_jcard(jobCardData);
 
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card added successfully')));
-          fetchJobcards();
           setState(() {
-           
+            pendingjcardList.add({
+              'id': pendingjcardList.length + 1,  
+               'cardno': _cardnumberController.text,
+        'customerName': _nameController.text,
+        'model': _registrationtroller.text,
+        'regno': _modelController.text,
+        'status': _statusController.text,
+            });
           });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card added successfully')));
+          
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add job card')));
         }
@@ -69,7 +76,7 @@ final ApiPendingJobcardrepo _apiJobcardRepository = ApiPendingJobcardrepo();
     setState(() {
       jobcardNos = fetchedJobcards;  
       jobcardNumbers = fetchedJobcards
-          .map<String>((jobcard) => jobcard['jobcardno'].toString()) // Extract jobcardno
+          .map<String>((jobcard) => jobcard['jobcardno'].toString()) 
           .toList();  
     });
   } catch (e) {

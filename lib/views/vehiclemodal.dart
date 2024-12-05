@@ -25,7 +25,7 @@ class Vehiclemodal extends StatefulWidget {
 class _VehiclemodalState extends State<Vehiclemodal> {
 
   bool isLoading = false;
-  List<Map<String, dynamic>> vehiclemodalList = [];
+  List vehiclemodalList = [];
   List filteredVehicleList = [];
   List<Map<String,dynamic>> vehicleList=[];
   final TextEditingController _titleController = TextEditingController();
@@ -33,48 +33,48 @@ class _VehiclemodalState extends State<Vehiclemodal> {
   final TextEditingController _searchController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-  List<String> _suggestions = [];
 int? _selectedSiNo; 
 late Future<List<dynamic>> jobcards;
 List<String> Vmake = [];
   List<dynamic> vamnes = [];
 final ApiVehicleModelRepository _apiModelRepository=ApiVehicleModelRepository();
+final ApiVehicleModelRepository _apiDeleteModel=ApiVehicleModelRepository();
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_filterSearchResults);
+    //_searchController.addListener(_filterSearchResults);
    jobcards=ApiVehicleModelRepository().get_vehiclemodel();
    fetchJobcards();
   }
-
 Future<void> submitModel() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      Map<String, dynamic> vehicleData = {
-        'modeletitle': _titleController.text,
-        'modalsubtitle': _subtitleController.text,
-      };
+  if (_formKey.currentState?.validate() ?? false) {
+    Map<String, dynamic> vehicleData = {
+      'id': filteredVehicleList.length + 1, // Assuming you're generating ID based on list length
+      'modeletitle': _titleController.text,
+      'modalsubtitle': _subtitleController.text,
+    };
 
-      try {
-        bool success = await _apiModelRepository.post_vehiclemodel(vehicleData);
+    try {
+      bool success = await _apiModelRepository.post_vehiclemodel(vehicleData);
 
-        if (success) {
-          setState(() {
-            vehicleList.add({
-              'ID': filteredVehicleList.length + 1,  
-              'modeletitle': _titleController.text,
-              'modalsubtitle': _subtitleController.text,
-            });
+      if (success) {
+        setState(() {
+          filteredVehicleList.add({
+            'ID': filteredVehicleList.length + 1, // ID will be added here
+            'modeletitle': _titleController.text,
+            'modalsubtitle': _subtitleController.text,
           });
+        });
 
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
-          Navigator.pop(context); 
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
+        Navigator.pop(context); // Close the current screen
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+  }
 }
 
 Future<void> fetchJobcards() async {
@@ -108,16 +108,23 @@ Future<void> fetchJobcards() async {
   }
 }
 
-  void _filterSearchResults() {
-    String query = _searchController.text.toLowerCase();
+Future<void> _deletevehicleModel(int id) async {
+    await _apiDeleteModel.deleteModel(id);
     setState(() {
-      filteredVehicleList = vehiclemodalList
-          .where((vehicle) =>
-              vehicle['modeletitle'].toLowerCase().contains(query) ||
-              vehicle['modalsubtitle'].toLowerCase().contains(query))
-          .toList();
+      filteredVehicleList.removeWhere((jobcard) => jobcard['siNo'] == id);
     });
   }
+
+  // void _filterSearchResults() {
+  //   String query = _searchController.text.toLowerCase();
+  //   setState(() {
+  //     filteredVehicleList = vehiclemodalList
+  //         .where((vehicle) =>
+  //             vehicle['modeletitle'].toLowerCase().contains(query) ||
+  //             vehicle['modalsubtitle'].toLowerCase().contains(query))
+  //         .toList();
+  //   });
+  // }
 
 
 
@@ -190,7 +197,7 @@ Future<void> fetchJobcards() async {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            _filterSearchResults();
+                           // _filterSearchResults();
                           },
                           child: Icon(Icons.search, color: Colors.grey)),
                         SizedBox(width: 5),
@@ -266,8 +273,8 @@ Future<void> fetchJobcards() async {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(filteredVehicleList[index]["modeletitle"], style: getFonts(16, Colors.black)),
-                                      Text(filteredVehicleList[index]["modalsubtitle"], style: TextStyle(color: Colors.black,)),
+                                      Text(filteredVehicleList[index]["modeletitle"]??"", style: getFonts(16, Colors.black)),
+                                      Text(filteredVehicleList[index]["modalsubtitle"]?? "", style: TextStyle(color: Colors.black,)),
                                     ],
                                   ),
                                 ],
@@ -278,7 +285,7 @@ Future<void> fetchJobcards() async {
                                    if (value == 'Edit') {
                                      adaPopup(title:vehiclemodalList[index]["modeletitle"],subtitle: vehiclemodalList[index]["modalsubtitle"],id:vehiclemodalList[index]["ID"] );  
                                         } else if (value == 'Delete') {
-                                        //deleteVehicle(filteredVehicleList[index]["ID"]); 
+                                        _deletevehicleModel(filteredVehicleList[index]["ID"]);
                                         }
                           
                                 },

@@ -26,6 +26,7 @@ class _VehicleMakeState extends State<VehicleMake> {
   int? _selectedSiNo;  // To store the SiNo of the vehicle to be edited
   late Future<List<dynamic>> make;
   final ApiVehicleMakeRepository _apimakeRepository =ApiVehicleMakeRepository();
+  final ApiVehicleMakeRepository _apimakeDelete =ApiVehicleMakeRepository();
   @override
   void initState() {
     super.initState();
@@ -33,34 +34,46 @@ class _VehicleMakeState extends State<VehicleMake> {
   }
 
 Future<void> submitMake() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      Map<String, dynamic> vehicleData = {
-        'VehicleName': _vehiclenameController.text,
-      };
-
-      try {
-        bool success = await _apimakeRepository.post_vehiclemake(vehicleData);
-
-        if (success) {
-          setState(() {
-            vehicleList.add({
-              'SiNo': vehicleList.length + 1,  
-              'VehicleName': _vehiclenameController.text,
-            });
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
-          Navigator.pop(context); 
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+  if (_formKey.currentState?.validate() ?? false) {
+    String vehicleName = _vehiclenameController.text.trim();
+    if (vehicleName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter a vehicle name')));
+      return;
     }
+
+    Map<String, dynamic> vehicleData = {
+      'VehicleName': vehicleName,
+    };
+
+    try {
+      bool success = await _apimakeRepository.post_vehiclemake(vehicleData);
+
+      if (success) {
+        setState(() {
+          vehicleList.add({
+            'SiNo': vehicleList.length + 1,  
+            'VehicleName': vehicleName,
+          });
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
+        Navigator.pop(context); 
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
 }
 
-  
+
+   Future<void> _deletevehicleMake(int id) async {
+    await _apimakeDelete.deleteMake(id);
+    setState(() {
+      vehicleList.removeWhere((jobcard) => jobcard['siNo'] == id);
+    });
+  }
 
   adaPopup({String? vehicleName, int? siNo}) {
     if (vehicleName != null && siNo != null) {
@@ -245,7 +258,7 @@ Future<void> submitMake() async {
                                       if (value == 'Edit') {
                                         adaPopup(vehicleName: vehicleList[index]['VehicleName'], siNo: vehicleList[index]['SiNo']);
                                       } else if (value == 'Delete') {
-                                        //deleteVehicle(vehicleList[index]['SiNo']); 
+                                        _deletevehicleMake(vehicleList[index]["siNo"]);
                                       }
                                     },
                                     itemBuilder: (BuildContext context) => [

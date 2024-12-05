@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:sher_mech/ApiRepository/jobcardPerforma.dart';
+import 'package:sher_mech/ApiRepository/jobcardlist.dart';
+import 'package:sher_mech/ApiRepository/pendingjobcard.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
@@ -46,89 +49,32 @@ final TextEditingController _discountControler=TextEditingController();
  List JobcardbillList = [];
  List performaList = [];
 String totalAmountString = '0.00';
+late Future<List<dynamic>>jobcard;
+late Future<List<dynamic>>performa;
+ List<String> jobcardNumbers = [];
+  List<dynamic> jobcardNos = []; 
 
-Future<void> getData_jobcard() async {
-    String query = 'SELECT * FROM Newjobcard ORDER BY id';
+Future<void> fetchJobcards() async {
+  try {
+    final fetchedJobcards = await ApiJobcardRepository().getjobcard();
     setState(() {
-      isLoading = true;
+      jobcardNos = fetchedJobcards;  
+      jobcardNumbers = fetchedJobcards
+          .map<String>((jobcard) => jobcard['jobcardno'].toString()) 
+          .toList();  
     });
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
-          setState(() {
-            JobcardbillList = List<Map<String, dynamic>>.from(data);
-            //filteredJobcardList = List.from(JobcardbillList); 
-          });
-        } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            JobcardbillList = [];
-            //filteredJobcardList = [];
-          });
-        }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-Future<void> get_Performa() async {
-    String query = 'SELECT * FROM PerformaPerticular ORDER BY JobcardNo';
+  } catch (e) {
     setState(() {
-      isLoading = true;
+      Fluttertoast.showToast(msg: 'Failed to fetch jobcards: $e');
     });
-
-    try {
-      bool isConnected = await connect();
-      if (isConnected) {
-        String result = await sqlConnection.getData(query);
-        if (result.isNotEmpty) {
-          List<dynamic> data = json.decode(result);
-          setState(() {
-            performaList = List<Map<String, dynamic>>.from(data);
-            //filteredJobcardList = List.from(JobcardbillList); 
-          });
-        } else {
-          Fluttertoast.showToast(msg: 'No data found');
-          setState(() {
-            performaList = [];
-            //filteredJobcardList = [];
-            performaList.clear();
-          });
-        }
-      } else {
-        Fluttertoast.showToast(msg: 'Database connection failed');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Error: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
   }
+}
 
- void onJobcardSelected(String jobcardNo) {
-  final selectedJobcard = JobcardbillList.firstWhere(
+void onJobcardSelected(String jobcardNo) {
+  final selectedJobcard = jobcardNos.firstWhere(
     (jobcard) => jobcard['jobcardno'] == jobcardNo,
-    orElse: () => <String, dynamic>{} 
+    orElse: () => <String, dynamic>{},
   );
-
- final selectedPerforma = performaList
-    .where((performa) => performa['Jobcardno'] == jobcardNo)
-    .toList();
-
-      
 
   if (selectedJobcard.isNotEmpty) {
     setState(() {
@@ -146,39 +92,76 @@ Future<void> get_Performa() async {
       _adressNoController.text = selectedJobcard['adress'] ?? '';
       _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
       _cusvoiceController.text = selectedJobcard['customervoice'] ?? '';
-      
-      performaList = selectedPerforma.map((performa) {
-  return {
-    'labourschedule': performa['labourschedule'] ?? '',
-    'amount': (performa['amount'] ?? '').toString(), 
-  };
-}).toList();
-
-  double totalAmount = 0.0;
-      for (var performa in selectedPerforma) {
-        var amount = performa['amount'];
-        if (amount != null) {
-          totalAmount += double.tryParse(amount.toString()) ?? 0.0;
-        }
-      }
-      totalAmountString = totalAmount.toStringAsFixed(2);
     });
   } else {
-    
     setState(() {
-      performaList.clear(); 
       Fluttertoast.showToast(msg: 'Jobcard not found');
     });
   }
 }
+
+//  void onJobcardSelected(String jobcardNo) {
+//   final selectedJobcard = JobcardbillList.firstWhere(
+//     (jobcard) => jobcard['jobcardno'] == jobcardNo,
+//     orElse: () => <String, dynamic>{} 
+//   );
+
+//  final selectedPerforma = performaList
+//     .where((performa) => performa['Jobcardno'] == jobcardNo)
+//     .toList();
+
+      
+
+//   if (selectedJobcard.isNotEmpty) {
+//     setState(() {
+//       _jobcard_dateController.text = selectedJobcard['arivedate'] ?? '';
+//       _registernoController.text = selectedJobcard['registerno'] ?? '';
+//       _modalController.text = selectedJobcard['model'] ?? '';
+//       _makeController.text = selectedJobcard['make'] ?? '';
+//       _machanicController.text = selectedJobcard['Technicians'] ?? '';
+//       _kvmcoverController.text = selectedJobcard['kilometer'].toString() ;
+//       _jc_startnoController.text = selectedJobcard['jc_start'] ?? '';
+//       _jc_finishController.text = selectedJobcard['deliverdate'] ?? '';
+//       _engineNoController.text = selectedJobcard['engine_no'] ?? '';
+//       _chassisNoController.text = selectedJobcard['chassisno'] ?? '';
+//       _nameNoController.text = selectedJobcard['customername'] ?? '';
+//       _adressNoController.text = selectedJobcard['adress'] ?? '';
+//       _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
+//       _cusvoiceController.text = selectedJobcard['customervoice'] ?? '';
+      
+//       performaList = selectedPerforma.map((performa) {
+//   return {
+//     'labourschedule': performa['labourschedule'] ?? '',
+//     'amount': (performa['amount'] ?? '').toString(), 
+//   };
+// }).toList();
+
+//   double totalAmount = 0.0;
+//       for (var performa in selectedPerforma) {
+//         var amount = performa['amount'];
+//         if (amount != null) {
+//           totalAmount += double.tryParse(amount.toString()) ?? 0.0;
+//         }
+//       }
+//       totalAmountString = totalAmount.toStringAsFixed(2);
+//     });
+//   } else {
+    
+//     setState(() {
+//       performaList.clear(); 
+//       Fluttertoast.showToast(msg: 'Jobcard not found');
+//     });
+//   }
+// }
 
 
 
   @override
   void initState() {
     super.initState();
-    getData_jobcard();
-    get_Performa();
+    jobcard=ApiJobcardRepository().getjobcard();
+    performa=ApiJobcardPerforma().get_Performaperticular();
+    fetchJobcards();
   }
   
   @override
@@ -218,9 +201,9 @@ Future<void> get_Performa() async {
             SizedBox(height: 30,),
             
          Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                        Container(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+            Container(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -252,7 +235,7 @@ Future<void> get_Performa() async {
             child: EasyAutocomplete(
               controller: _jobcardnoController,
               suggestionTextStyle: filedFonts(),
-              suggestions: JobcardbillList
+              suggestions: jobcardNos
                   .map((jobcard) => jobcard['jobcardno'].toString())
                   .toList(),
               onSubmitted: (value) {
@@ -260,8 +243,8 @@ Future<void> get_Performa() async {
               },
               decoration: const InputDecoration(
                 border: InputBorder.none,
-                isDense: true, // Make the input compact
-                contentPadding: EdgeInsets.symmetric(vertical: 8), // Adjust spacing
+                isDense: true, 
+                contentPadding: EdgeInsets.symmetric(vertical: 8), 
               ),
             ),
           ),
