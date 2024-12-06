@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,11 +8,9 @@ import 'package:sher_mech/ApiRepository/jobcardlist.dart';
 //import 'package:share_plus/share_plus.dart';
 import 'package:sher_mech/utility/colorss.dart';
 import 'package:intl/intl.dart';
-import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
 import 'package:sher_mech/utility/font.dart';
 import 'package:sher_mech/views/pdf_%20and%20_invoice/pdf.dart';
-import 'package:sher_mech/views/vehiclemake.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 
@@ -25,13 +22,13 @@ class Jobcardreport extends StatefulWidget {
 }
 
 class _JobcardreportState extends State<Jobcardreport> {
-  List reportlist=[];
-    List<Map<String,dynamic>> filter_reportlist=[];
-bool isSearchFieldVisible = false;
+   List<Map<String, dynamic>> reportlist = [];
+  List<Map<String, dynamic>> filter_reportlist = [];
+  bool isSearchFieldVisible = false;
   bool isLoading = false;
   final TextEditingController _searchController = TextEditingController();
-   final TextEditingController _filterController = TextEditingController();
-  String filterCriteria = 'Name'; 
+  final TextEditingController _filterController = TextEditingController();
+  String filterCriteria = 'Name';
 
   DateTime? _fromDate;
   DateTime? _toDate;
@@ -53,122 +50,112 @@ bool isSearchFieldVisible = false;
           _toDate = selectedDate;
         }
       });
+      _filterReportList(); 
     }
   }
-late Future<List<dynamic>> reportget;
 
-   @override
+
+void _filterReportList() {
+  setState(() {
+    filter_reportlist = reportlist.where((report) {
+      DateFormat dateFormat = DateFormat('MM/dd/yyyy');
+      DateTime reportDate;
+      try {
+        reportDate = dateFormat.parse(report['arivedate']);
+      } catch (e) {
+        return false;
+      }
+
+      bool isWithinDateRange = true;
+      if (_fromDate != null && _toDate != null) {
+        isWithinDateRange = reportDate.isAfter(_fromDate!.subtract(Duration(days: 1))) &&
+            reportDate.isBefore(_toDate!.add(Duration(days: 1)));
+      }
+      bool matchesSearchQuery = true;
+      String query = _filterController.text.toLowerCase();
+      if (query.isNotEmpty) {
+        if (filterCriteria == 'Name') {
+          matchesSearchQuery = report['customername']?.toLowerCase().contains(query) ?? false;
+        } else if (filterCriteria == 'Jobcard No') {
+          matchesSearchQuery = report['jobcardno']?.toString().toLowerCase().contains(query) ?? false;
+        }
+      }
+
+      return isWithinDateRange && matchesSearchQuery;
+    }).toList();
+  });
+}
+
+
+
+  late Future<List<dynamic>> reportget;
+
+  @override
   void initState() {
     super.initState();
-    reportget=ApiJobcardRepository().getjobcard();
-  
-  }
-
- 
-  List<Map<String, dynamic>> originalReportList = [];
-
-
- Future<void> _select_reportDate(BuildContext context, bool isFromDate) async {
-  final DateTime? selectedDate = await showDatePicker(
-    context: context,
-    initialDate: DateTime.now(),
-    firstDate: DateTime(2000),
-    lastDate: DateTime(2101),
-  );
-
-  if (selectedDate != null) {
-    setState(() {
-      if (isFromDate) {
-        _fromDate = selectedDate;
-      } else {
-        _toDate = selectedDate;
-      }
+    reportget = ApiJobcardRepository().getjobcard();
+    reportget.then((data) {
+      setState(() {
+        reportlist = List<Map<String, dynamic>>.from(data);
+        filter_reportlist = List.from(reportlist); 
+      });
     });
-    //await getData_reportcard();
-  }
-}
-//  void _filterSearchResults(String query) {
-//   setState(() {
-//     if (query.isEmpty) {
-//       reportlist = List.of(originalReportList);  
-//     } else {
-//       filter_reportlist = reportlist.where((jobreport) {
-//         if (filterCriteria == 'Name') {
-//           return jobreport['customername']?.toLowerCase().contains(query) ?? false;
-//         } else if (filterCriteria == 'Jobcard No') {
-//           return jobreport['jobcardno']?.toString().toLowerCase().contains(query) ?? false;
-//         }
-//         return false;
-//       }).toList();
-//       reportlist = filter_reportlist;
-//     }
-//   });
-// }
-
-Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
-  final pdf = pw.Document();
-
-  // Add page to PDF
-  pdf.addPage(
-    pw.Page(
-      build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          mainAxisAlignment: pw.MainAxisAlignment.start,
-          children: [
-            pw.Text("JobCard Report", style: pw.TextStyle(fontSize: 24, font: pw.Font.courier())),
-            pw.SizedBox(height: 20),
-            pw.Table.fromTextArray(
-              context: context,
-              data: <List<String>>[
-                ['id', 'Booking Date', 'JC No', 'Name'], 
-                ...reportList.map((report) => [
-                  report['id'].toString(),
-                  report['arivedate'] ?? '',
-                  report['jobcardno'] ?? '',
-                  report['customername'] ?? '',
-                  
-                ]
-                
-                ),
-              ],
-              cellAlignment: pw.Alignment.center,
-            ),
-          ],
-        );
-      },
-    ),
-  );
-
-  // Save PDF to the app's documents directory
-  final outputDirectory = await getApplicationDocumentsDirectory();
-  final file = File("${outputDirectory.path}/jobcard_report.pdf");
-
-  // Ensure the file is written properly
-  await file.writeAsBytes(await pdf.save());
-  return file;
-}
-
- 
-
-Future<void> _generateAndViewPDF() async {
-  if (reportlist.isEmpty) {
-    Fluttertoast.showToast(msg: 'No data available to generate PDF');
-    return;
   }
 
-  print("Report list: $reportlist"); // Debugging to ensure data is passed correctly.
+  Future<File> generatePDF(List<Map<String, dynamic>> reportList) async {
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisAlignment: pw.MainAxisAlignment.start,
+            children: [
+              pw.Text("JobCard Report", style: pw.TextStyle(fontSize: 24, font: pw.Font.courier())),
+              pw.SizedBox(height: 20),
+              pw.Table.fromTextArray(
+                context: context,
+                data: <List<String>>[
+                  ['id', 'Booking Date', 'JC No', 'Name'], // Header row
+                  ...reportList.map((report) => [
+                    report['id'].toString(),
+                    report['arivedate'] ?? '',
+                    report['jobcardno'] ?? '',
+                    report['customername'] ?? '',
+                  ]),
+                ],
+                cellAlignment: pw.Alignment.center,
+              ),
+            ],
+          );
+        },
+      ),
+    );
 
- // File pdfFile = await generatePDF(reportlist);
+    final outputDirectory = await getApplicationDocumentsDirectory();
+    final file = File("${outputDirectory.path}/jobcard_report.pdf");
 
-  // Navigate to the PDF screen after the PDF is generated
-  // Navigator.push(
-  //   context,
-  //   MaterialPageRoute(
-  //     builder: (context) => PDFScreen(path: pdfFile.path),
-  //   ),
-  // );
-}
+    await file.writeAsBytes(await pdf.save());
+    return file;
+  }
+
+  Future<void> _generateAndViewPDF() async {
+    if (filter_reportlist.isEmpty) {
+      Fluttertoast.showToast(msg: 'No data available to generate PDF');
+      return;
+    }
+
+    List<Map<String, dynamic>> formattedReportList = List<Map<String, dynamic>>.from(filter_reportlist);
+
+    print("Formatted Report list: $formattedReportList");
+    File pdfFile = await generatePDF(formattedReportList);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PDFScreen(path: pdfFile.path),
+      ),
+    );
+  }
 
 
   @override
@@ -191,8 +178,7 @@ Future<void> _generateAndViewPDF() async {
             ),
             autofocus: true, 
             onChanged: (value) {
-              //_filterSearchResults(value);
-            }, 
+              _filterReportList();}
             // automatically focus when the field is visible
           ),
       )
@@ -222,7 +208,7 @@ Future<void> _generateAndViewPDF() async {
                 isSearchFieldVisible = !isSearchFieldVisible; 
                 if (isSearchFieldVisible) {
                   _searchController.clear(); 
-                 // _filterSearchResults('');
+                  _filterReportList();
                 }
               });
                     },
@@ -257,7 +243,7 @@ Future<void> _generateAndViewPDF() async {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           GestureDetector(
-                            onTap: () => _select_reportDate(context, true),
+                            onTap: () => _selectDate(context, true),
                             child: Row(
                               children: [
                                 Icon(Icons.calendar_month_outlined, color: Appcolors().maincolor),
@@ -271,7 +257,7 @@ Future<void> _generateAndViewPDF() async {
                           ),
                           Text("-", style: TextStyle(color: Appcolors().maincolor)),
                           GestureDetector(
-                            onTap: () => _select_reportDate(context, false),
+                            onTap: () => _selectDate(context, false),
                             child: Row(
                               children: [
                                 Icon(Icons.calendar_month_outlined, color: Appcolors().maincolor),
@@ -336,13 +322,13 @@ Future<void> _generateAndViewPDF() async {
                 } else if (snapshot.hasError) {
                   return Center(child: Text("Error: ${snapshot.error}"));
                 } else if (snapshot.hasData) {
-                  reportlist = snapshot.data!;
+                  reportlist = List<Map<String, dynamic>>.from(snapshot.data!);
 
                   return   Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 16, right: 18),
                     child: ListView.builder(
-                  itemCount: reportlist.length,
+                  itemCount: filter_reportlist.length,
                 itemBuilder: (context, index) {
                   
                   int sn=index+1;
@@ -360,9 +346,9 @@ Future<void> _generateAndViewPDF() async {
                     child: Row(
                       children: [
                         Expanded(child: Center(child: Text("$sn"))),
-                        Expanded(child: Center(child: Text(reportlist[index]['arivedate']?.toString() ?? ""))),
-                        Expanded(child: Center(child: Text(reportlist[index]['jobcardno']?.toString() ?? ""))),
-                        Expanded(child: Center(child: Text(reportlist[index]['customername']?.toString() ?? ""))),
+                        Expanded(child: Center(child: Text(filter_reportlist[index]['arivedate']?.toString() ?? ""))),
+                        Expanded(child: Center(child: Text(filter_reportlist[index]['jobcardno']?.toString() ?? ""))),
+                        Expanded(child: Center(child: Text(filter_reportlist[index]['customername']?.toString() ?? ""))),
                       ],
                     ),
                   );
@@ -457,7 +443,7 @@ Future<void> _generateAndViewPDF() async {
               Center(
                child: GestureDetector(
                 onTap: () {
-                  //_filterSearchResults(_filterController.text);
+                   _filterReportList();
                     Navigator.pop(context);
                 },
                  child: Container(

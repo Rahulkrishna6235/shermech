@@ -27,11 +27,12 @@ class _VehiclemodalState extends State<Vehiclemodal> {
   bool isLoading = false;
   List vehiclemodalList = [];
   List filteredVehicleList = [];
+
   List<Map<String,dynamic>> vehicleList=[];
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _subtitleController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
-
+ String filterCriteria = 'Model';
   final _formKey = GlobalKey<FormState>();
 int? _selectedSiNo; 
 late Future<List<dynamic>> jobcards;
@@ -39,43 +40,89 @@ List<String> Vmake = [];
   List<dynamic> vamnes = [];
 final ApiVehicleModelRepository _apiModelRepository=ApiVehicleModelRepository();
 final ApiVehicleModelRepository _apiDeleteModel=ApiVehicleModelRepository();
-  @override
+final ApiVehicleModelRepository _apiUpdateModel=ApiVehicleModelRepository();
+
+ @override
   void initState() {
     super.initState();
-    //_searchController.addListener(_filterSearchResults);
-   jobcards=ApiVehicleModelRepository().get_vehiclemodel();
-   fetchJobcards();
+    _searchController.addListener(_filterSearchResults);
+    jobcards = ApiVehicleModelRepository().get_vehiclemodel();
+    fetchJobcards();
+    jobcards.then((data) {
+      setState(() {
+        vehicleList = List<Map<String, dynamic>>.from(data);
+        filteredVehicleList = List.from(vehicleList);
+      });
+    });
   }
+  
 Future<void> submitModel() async {
   if (_formKey.currentState?.validate() ?? false) {
+    String title = _titleController.text.trim();
+    String subtitle = _subtitleController.text.trim();
+
+    // Validation to ensure fields are not empty
+    if (title.isEmpty || subtitle.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter all fields')));
+      return;
+    }
+
     Map<String, dynamic> vehicleData = {
-      'id': filteredVehicleList.length + 1, // Assuming you're generating ID based on list length
-      'modeletitle': _titleController.text,
-      'modalsubtitle': _subtitleController.text,
+      'modeletitle': title,
+      'modalsubtitle': subtitle,
     };
 
     try {
-      bool success = await _apiModelRepository.post_vehiclemodel(vehicleData);
+      if (_selectedSiNo == null) {
+        bool success = await _apiModelRepository.post_vehiclemodel(vehicleData);
 
-      if (success) {
-        setState(() {
-          filteredVehicleList.add({
-            'ID': filteredVehicleList.length + 1, // ID will be added here
-            'modeletitle': _titleController.text,
-            'modalsubtitle': _subtitleController.text,
+        if (success) {
+          setState(() {
+            filteredVehicleList.add({
+              'ID': filteredVehicleList.length + 1, // Generate a new ID (or get from the response if available)
+              'modeletitle': title,
+              'modalsubtitle': subtitle,
+            });
           });
-        });
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
-        Navigator.pop(context); // Close the current screen
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
+          _titleController.clear();
+          _subtitleController.clear();
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
+        bool success = await _apiUpdateModel.updateVehicleModel(
+          _selectedSiNo!.toString(),
+          title,
+          subtitle,
+        );
+
+        if (success) {
+          setState(() {
+            // Update the existing entry in the list
+            int index = filteredVehicleList.indexWhere((vehicle) => vehicle['ID'] == _selectedSiNo);
+            if (index != -1) {
+              filteredVehicleList[index]['modeletitle'] = title;
+              filteredVehicleList[index]['modalsubtitle'] = subtitle;
+            }
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle updated successfully')));
+          _titleController.clear();
+          _subtitleController.clear();
+          Navigator.pop(context); // Close the dialog
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update vehicle')));
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 }
+
 
 Future<void> fetchJobcards() async {
   try {
@@ -115,16 +162,25 @@ Future<void> _deletevehicleModel(int id) async {
     });
   }
 
-  // void _filterSearchResults() {
-  //   String query = _searchController.text.toLowerCase();
-  //   setState(() {
-  //     filteredVehicleList = vehiclemodalList
-  //         .where((vehicle) =>
-  //             vehicle['modeletitle'].toLowerCase().contains(query) ||
-  //             vehicle['modalsubtitle'].toLowerCase().contains(query))
-  //         .toList();
-  //   });
-  // }
+  final TextEditingController _filterController = TextEditingController();
+  
+
+  void _filterSearchResults() {
+    setState(() {
+      filteredVehicleList = vehicleList.where((report) {
+        bool matchesSearchQuery = true;
+        String query = _searchController.text.toLowerCase();
+        if (query.isNotEmpty) {
+          if (filterCriteria == 'Model') {
+            matchesSearchQuery = report['modeletitle']?.toLowerCase().contains(query) ?? false;
+          } else if (filterCriteria == 'Make') {
+            matchesSearchQuery = report['modalsubtitle']?.toString().toLowerCase().contains(query) ?? false;
+          }
+        }
+        return matchesSearchQuery;
+      }).toList();
+    });
+  }
 
 
 
@@ -197,7 +253,7 @@ Future<void> _deletevehicleModel(int id) async {
                       children: [
                         GestureDetector(
                           onTap: () {
-                           // _filterSearchResults();
+                           _filterSearchResults();
                           },
                           child: Icon(Icons.search, color: Colors.grey)),
                         SizedBox(width: 5),
@@ -228,7 +284,9 @@ Future<void> _deletevehicleModel(int id) async {
                     color: Color(0xFF0008B4),
                   ),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _showFilterBottomSheet(context);
+                    },
                     icon: Icon(Icons.filter_list_alt, color: Colors.white),
                   ),
                 ),
@@ -283,7 +341,8 @@ Future<void> _deletevehicleModel(int id) async {
                                 color: Appcolors().scafoldcolor,
                                 onSelected: (value) {
                                    if (value == 'Edit') {
-                                     adaPopup(title:vehiclemodalList[index]["modeletitle"],subtitle: vehiclemodalList[index]["modalsubtitle"],id:vehiclemodalList[index]["ID"] );  
+                                     adaPopup(title:vehiclemodalList[index]["modeletitle"],subtitle: vehiclemodalList[index]["modalsubtitle"],
+                                                 id:vehiclemodalList[index]["ID"] );  
                                         } else if (value == 'Delete') {
                                         _deletevehicleModel(filteredVehicleList[index]["ID"]);
                                         }
@@ -320,122 +379,189 @@ Future<void> _deletevehicleModel(int id) async {
       ),
     );
   }
-  adaPopup({String ? title,String? subtitle,int? id}) {
-    if (title != null && subtitle != null && id !=null) {
-      setState(() {
-      _titleController.text = title;
-      _subtitleController.text = subtitle;
+
+ adaPopup({String? title, String? subtitle, int? id}) {
+  if (title != null && subtitle != null && id != null) {
+    setState(() {
+      _titleController.text = title;   
+      _subtitleController.text = subtitle;  
       _selectedSiNo = id; 
-    });  
-    }
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Appcolors().Scfold,
-          
-          content: SingleChildScrollView(
-            child: SafeArea(
-              child: Container(
-                height: 250,
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        
-                                        Text(_selectedSiNo == null ? "Enter Details" : "Edit Details",style: getFonts(18, Colors.black),),
-                                        IconButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          icon: Icon(Icons.close),
-                                        ),
-                                      ],
-                                    ),
-                      ),
-                        Container(
-                        width: 290,
-                        height: 58,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: TextFormField(
-                          controller: _titleController,
-                          validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a vehicle model';
-                        }
-                        return null;
-                      }, 
-                          decoration: InputDecoration(
-                        isDense: true,
-                        filled: true,
-                        fillColor: Appcolors().scafoldcolor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(color: Appcolors().maincolor),
-                        ),
-                        hintText: "Enter the model",
-                        hintStyle: TextStyle(color: Color(0xFF948C93)),
-                      ),
-                          autofocus: true,
-                        ),
-                      ),
-                      Container(
-                            width: 290,
-                            height: 58,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Appcolors().maincolor),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: EasyAutocomplete(
-                                                        controller: _subtitleController,
-                                                        suggestions: vamnes
-                                      .map((jobcard) => jobcard['VehicleName'].toString())
-                                      .toList(),
-                                      onSubmitted: (value) {
-                                    onJobcardSelected(value);
-                                                        },
-                                                      decoration: InputDecoration(
-                            border: InputBorder.none
+    });
+  }
+
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Appcolors().Scfold,
+        content: SingleChildScrollView(
+          child: SafeArea(
+            child: Container(
+              height: 250,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(_selectedSiNo == null ? "Enter Details" : "Edit Details", style: getFonts(18, Colors.black)),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: Icon(Icons.close),
                           ),
-                                                      ),
-                          ),
-                      const SizedBox(height: 15),
-                      GestureDetector(
-                        onTap: () async {
-                        submitModel();
+                        ],
+                      ),
+                    ),
+                    // Title field
+                    Container(
+                      width: 290,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: TextFormField(
+                        controller: _titleController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a vehicle model';
+                          }
+                          return null;
                         },
-                        child: Center(
-                          child: Container(
-                            width: 155,
-                            height: 43,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Color(0xFF0008B4),
-                            ),
-                            child: Center(
-                              child: Text("Save", style: getFonts(14, Colors.white)),
-                            ),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: true,
+                          fillColor: Appcolors().scafoldcolor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide(color: Appcolors().maincolor),
+                          ),
+                          hintText: "Enter the model",
+                          hintStyle: TextStyle(color: Color(0xFF948C93)),
+                        ),
+                        autofocus: true,
+                      ),
+                    ),
+                    // Subtitle (vehicle name) field with autocomplete
+                    Container(
+                      width: 290,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Appcolors().maincolor),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: EasyAutocomplete(
+                        controller: _subtitleController,
+                        suggestions: vamnes
+                            .map((jobcard) => jobcard['VehicleName'].toString())
+                            .toList(),
+                        onSubmitted: (value) {
+                          onJobcardSelected(value);  // Handle selection
+                        },
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    GestureDetector(
+                      onTap: () async {
+                          submitModel();
+                      },
+                      child: Center(
+                        child: Container(
+                          width: 155,
+                          height: 43,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Color(0xFF0008B4),
+                          ),
+                          child: Center(
+                            child: Text("Save", style: getFonts(14, Colors.white)),
                           ),
                         ),
                       ),
-                    
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
+          ),
+        ),
+      );
+    },
+  );
+}
+void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Filter by:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Radio<String>(
+                    value: 'Model',
+                    groupValue: filterCriteria,
+                    onChanged: (value) {
+                      setState(() {
+                        filterCriteria = value!;
+                      });
+                    },
+                  ),
+                  Text('Model'),
+                  Radio<String>(
+                    value: 'Make',
+                    groupValue: filterCriteria,
+                    onChanged: (value) {
+                      setState(() {
+                        filterCriteria = value!;
+                      });
+                    },
+                  ),
+                  Text('Make'),
+                ],
+              ),
+              TextField(
+                controller: _filterController,
+                decoration: InputDecoration(
+                  hintText: 'Enter ${filterCriteria == 'Name' ? 'Model' : 'make'}...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 10),
+              Center(
+               child: GestureDetector(
+                onTap: () {
+                   _filterSearchResults();
+                    Navigator.pop(context);
+                },
+                 child: Container(
+                    width: 100,height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Appcolors().maincolor
+                    ),
+                    child: Center(child: Text("Apply",style: getFonts(14, Colors.white),)),
+                 ),
+               )
+              ),
+            ],
           ),
         );
       },
     );
   }
+
   @override
   void dispose(){
     super.dispose();

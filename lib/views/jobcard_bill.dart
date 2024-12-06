@@ -53,7 +53,7 @@ late Future<List<dynamic>>jobcard;
 late Future<List<dynamic>>performa;
  List<String> jobcardNumbers = [];
   List<dynamic> jobcardNos = []; 
-
+double totalAmount = 0.0;
 Future<void> fetchJobcards() async {
   try {
     final fetchedJobcards = await ApiJobcardRepository().getjobcard();
@@ -70,91 +70,60 @@ Future<void> fetchJobcards() async {
   }
 }
 
-void onJobcardSelected(String jobcardNo) {
-  final selectedJobcard = jobcardNos.firstWhere(
-    (jobcard) => jobcard['jobcardno'] == jobcardNo,
-    orElse: () => <String, dynamic>{},
-  );
+ void onJobcardSelected(String jobcardNo) async {
+    // Fetch jobcard data based on selected jobcard number
+    final selectedJobcard = jobcardNos.firstWhere(
+      (jobcard) => jobcard['jobcardno'] == jobcardNo,
+      orElse: () => <String, dynamic>{},
+    );
 
-  if (selectedJobcard.isNotEmpty) {
-    setState(() {
-      _jobcard_dateController.text = selectedJobcard['arivedate'] ?? '';
-      _registernoController.text = selectedJobcard['registerno'] ?? '';
-      _modalController.text = selectedJobcard['model'] ?? '';
-      _makeController.text = selectedJobcard['make'] ?? '';
-      _machanicController.text = selectedJobcard['Technicians'] ?? '';
-      _kvmcoverController.text = selectedJobcard['kilometer'].toString() ;
-      _jc_startnoController.text = selectedJobcard['jc_start'] ?? '';
-      _jc_finishController.text = selectedJobcard['deliverdate'] ?? '';
-      _engineNoController.text = selectedJobcard['engine_no'] ?? '';
-      _chassisNoController.text = selectedJobcard['chassisno'] ?? '';
-      _nameNoController.text = selectedJobcard['customername'] ?? '';
-      _adressNoController.text = selectedJobcard['adress'] ?? '';
-      _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
-      _cusvoiceController.text = selectedJobcard['customervoice'] ?? '';
-    });
-  } else {
-    setState(() {
-      Fluttertoast.showToast(msg: 'Jobcard not found');
-    });
+    if (selectedJobcard.isNotEmpty) {
+      // Set the form fields with jobcard data
+      setState(() {
+        _jobcard_dateController.text = selectedJobcard['arivedate'] ?? '';
+        _registernoController.text = selectedJobcard['registerno'] ?? '';
+        _modalController.text = selectedJobcard['model'] ?? '';
+        _makeController.text = selectedJobcard['make'] ?? '';
+        _machanicController.text = selectedJobcard['Technicians'] ?? '';
+        _kvmcoverController.text = selectedJobcard['kilometer'].toString();
+        _jc_startnoController.text = selectedJobcard['jc_start'] ?? '';
+        _jc_finishController.text = selectedJobcard['deliverdate'] ?? '';
+        _engineNoController.text = selectedJobcard['engine_no'] ?? '';
+        _chassisNoController.text = selectedJobcard['chassisno'] ?? '';
+        _nameNoController.text = selectedJobcard['customername'] ?? '';
+        _adressNoController.text = selectedJobcard['adress'] ?? '';
+        _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
+        _cusvoiceController.text = selectedJobcard['customervoice'] ?? '';
+      });
+      final selectedPerforma = await performa; 
+      final selectedPerformaList = selectedPerforma.where((performa) {
+        return performa['Jobcardno'] == jobcardNo;
+      }).toList();
+
+      setState(() {
+        performaList = selectedPerformaList.map((performa) {
+          return {
+            'labourschedule': performa['labourschedule'] ?? '',
+            'amount': (performa['amount'] ?? '').toString(),
+          };
+        }).toList();
+        totalAmount = selectedPerformaList.fold(0.0, (sum, performa) {
+          var amount = performa['amount'];
+          if (amount != null) {
+            sum += double.tryParse(amount.toString()) ?? 0.0;
+          }
+          return sum;
+        });
+
+        totalAmountString = totalAmount.toStringAsFixed(2);
+      });
+    } else {
+      setState(() {
+        performaList.clear(); 
+        Fluttertoast.showToast(msg: 'Jobcard not found');
+      });
+    }
   }
-}
-
-//  void onJobcardSelected(String jobcardNo) {
-//   final selectedJobcard = JobcardbillList.firstWhere(
-//     (jobcard) => jobcard['jobcardno'] == jobcardNo,
-//     orElse: () => <String, dynamic>{} 
-//   );
-
-//  final selectedPerforma = performaList
-//     .where((performa) => performa['Jobcardno'] == jobcardNo)
-//     .toList();
-
-      
-
-//   if (selectedJobcard.isNotEmpty) {
-//     setState(() {
-//       _jobcard_dateController.text = selectedJobcard['arivedate'] ?? '';
-//       _registernoController.text = selectedJobcard['registerno'] ?? '';
-//       _modalController.text = selectedJobcard['model'] ?? '';
-//       _makeController.text = selectedJobcard['make'] ?? '';
-//       _machanicController.text = selectedJobcard['Technicians'] ?? '';
-//       _kvmcoverController.text = selectedJobcard['kilometer'].toString() ;
-//       _jc_startnoController.text = selectedJobcard['jc_start'] ?? '';
-//       _jc_finishController.text = selectedJobcard['deliverdate'] ?? '';
-//       _engineNoController.text = selectedJobcard['engine_no'] ?? '';
-//       _chassisNoController.text = selectedJobcard['chassisno'] ?? '';
-//       _nameNoController.text = selectedJobcard['customername'] ?? '';
-//       _adressNoController.text = selectedJobcard['adress'] ?? '';
-//       _phonenoNoController.text = selectedJobcard['mobilenumber'] ?? '';
-//       _cusvoiceController.text = selectedJobcard['customervoice'] ?? '';
-      
-//       performaList = selectedPerforma.map((performa) {
-//   return {
-//     'labourschedule': performa['labourschedule'] ?? '',
-//     'amount': (performa['amount'] ?? '').toString(), 
-//   };
-// }).toList();
-
-//   double totalAmount = 0.0;
-//       for (var performa in selectedPerforma) {
-//         var amount = performa['amount'];
-//         if (amount != null) {
-//           totalAmount += double.tryParse(amount.toString()) ?? 0.0;
-//         }
-//       }
-//       totalAmountString = totalAmount.toStringAsFixed(2);
-//     });
-//   } else {
-    
-//     setState(() {
-//       performaList.clear(); 
-//       Fluttertoast.showToast(msg: 'Jobcard not found');
-//     });
-//   }
-// }
-
-
 
   @override
   void initState() {

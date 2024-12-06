@@ -63,4 +63,36 @@ class ApiVehicleModelRepository{
       Fluttertoast.showToast(msg: 'Error: $error');
     }
   }
+  
+
+Future<bool> updateVehicleModel(String id, String modaltitle, String modalsubtitle) async {
+  const String apiUrl = "http://192.168.0.128:3000/vehiclemodel/update";  // Base URL for the update API
+
+  try {
+    final response = await http.put(
+      Uri.parse('$apiUrl/$id'),  // Append the ID to the URL
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'modaltitle': modaltitle,
+        'modalsubtitle': modalsubtitle,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print(response.body);
+      print("Record updated successfully: ${response.body}");
+      return true;  
+    } else {
+      print("Failed to update record: ${response.body}");
+      return false;  
+    }
+  } catch (e) {
+    print("Error updating record: $e");
+    return false;  
+  }
+}
+
+
 }

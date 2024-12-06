@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:easy_autocomplete/easy_autocomplete.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sher_mech/ApiRepository/jobcardlist.dart';
 import 'package:sher_mech/ApiRepository/pendingjobcard.dart';
 import 'package:sher_mech/utility/colorss.dart';
-import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/font.dart';
-import 'package:sher_mech/views/vehiclemake.dart';
 
 class PendingCard extends StatefulWidget {
   const PendingCard({super.key});

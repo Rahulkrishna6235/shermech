@@ -45,22 +45,48 @@ class ApiVehicleMakeRepository{
     }
   }
 
-  Future<void> deleteMake(int id) async {
+  Future<bool> deleteMake(int id) async {
+    const String apiUrl = "http://192.168.0.128:3000/vehiclemake/delete/";
+
     try {
       final response = await http.delete(
-        Uri.parse('http://192.168.0.128:3000/vehiclemake/delete/$id'),
+        Uri.parse('$apiUrl$id'),
+      );
+      print(response.body);
+      if (response.statusCode == 200) {
+        return true; 
+      } else {
+        return false; 
+      }
+    } catch (e) {
+      print("Error deleting vehicle make: $e");
+      return false; 
+    }
+  }
+Future<bool> updateVehicleMake(int siNo, String newVehicleName) async {
+    const String apiUrl = "http://192.168.0.128:3000/vehiclemake/update";
+
+    try {
+      final response = await http.put(
+        Uri.parse('$apiUrl/$siNo'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'newVehicleName': newVehicleName,
+        }),
       );
 
       if (response.statusCode == 200) {
-        Fluttertoast.showToast(msg: 'Job card deleted successfully');
-       
-      } else if (response.statusCode == 404) {
-        Fluttertoast.showToast(msg: 'Job card not found');
+        print("Record updated successfully: ${response.body}");
+        return true;
       } else {
-        Fluttertoast.showToast(msg: 'Error: ${response.body}');
+        print("Failed to update record: ${response.body}");
+        return false;
       }
-    } catch (error) {
-      Fluttertoast.showToast(msg: 'Error: $error');
+    } catch (e) {
+      print("Error updating record: $e");
+      return false;
     }
   }
 }

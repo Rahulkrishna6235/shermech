@@ -23,59 +23,74 @@ class _VehicleMakeState extends State<VehicleMake> {
   List vehicleList = [];
   final TextEditingController _vehiclenameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  int? _selectedSiNo;  // To store the SiNo of the vehicle to be edited
+  int? _selectedSiNo;  
   late Future<List<dynamic>> make;
-  final ApiVehicleMakeRepository _apimakeRepository =ApiVehicleMakeRepository();
-  final ApiVehicleMakeRepository _apimakeDelete =ApiVehicleMakeRepository();
+  final ApiVehicleMakeRepository _apimakeRepository = ApiVehicleMakeRepository();
+  final ApiVehicleMakeRepository _apimakeDelete = ApiVehicleMakeRepository();
+
   @override
   void initState() {
     super.initState();
-    make=ApiVehicleMakeRepository().get_vehiclemake();
+    make = ApiVehicleMakeRepository().get_vehiclemake();
   }
-
-Future<void> submitMake() async {
-  if (_formKey.currentState?.validate() ?? false) {
-    String vehicleName = _vehiclenameController.text.trim();
-    if (vehicleName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter a vehicle name')));
-      return;
-    }
-
-    Map<String, dynamic> vehicleData = {
-      'VehicleName': vehicleName,
-    };
-
-    try {
-      bool success = await _apimakeRepository.post_vehiclemake(vehicleData);
-
-      if (success) {
-        setState(() {
-          vehicleList.add({
-            'SiNo': vehicleList.length + 1,  
-            'VehicleName': vehicleName,
-          });
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
-        Navigator.pop(context); 
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
+  Future<void> submitMake() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      String vehicleName = _vehiclenameController.text.trim();
+      if (vehicleName.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter a vehicle name')));
+        return;
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+
+      Map<String, dynamic> vehicleData = {
+        'VehicleName': vehicleName,
+      };
+
+      try {
+        if (_selectedSiNo == null) {
+          bool success = await _apimakeRepository.post_vehiclemake(vehicleData);
+          if (success) {
+            setState(() {
+              vehicleList.add({
+                'SiNo': vehicleList.length + 1,  
+                'VehicleName': vehicleName,
+              });
+            });
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
+            _vehiclenameController.clear();
+            Navigator.pop(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
+          }
+        } else {
+          bool success = await _apimakeRepository.updateVehicleMake(_selectedSiNo!, vehicleName);
+          if (success) {
+            setState(() {
+              int index = vehicleList.indexWhere((vehicle) => vehicle['SiNo'] == _selectedSiNo);
+              if (index != -1) {
+                vehicleList[index]['VehicleName'] = vehicleName;
+              }
+            });
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle updated successfully')));
+            _vehiclenameController.clear();
+            Navigator.pop(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update vehicle')));
+          }
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
-}
 
-
-   Future<void> _deletevehicleMake(int id) async {
+  Future<void> _deletevehicleMake(int id) async {
     await _apimakeDelete.deleteMake(id);
     setState(() {
-      vehicleList.removeWhere((jobcard) => jobcard['siNo'] == id);
+      vehicleList.removeWhere((vehicle) => vehicle['SiNo'] == id);
     });
   }
 
-  adaPopup({String? vehicleName, int? siNo}) {
+   adaPopup({String? vehicleName, int? siNo}) {
     if (vehicleName != null && siNo != null) {
       _vehiclenameController.text = vehicleName;
       _selectedSiNo = siNo;  
@@ -113,7 +128,7 @@ Future<void> submitMake() async {
                         return 'Please enter a vehicle model name';
                       }
                       return null;
-                    },  
+                    },
                     decoration: InputDecoration(
                       isDense: true,
                       filled: true,
@@ -131,8 +146,7 @@ Future<void> submitMake() async {
                 const SizedBox(height: 15),
                 GestureDetector(
                   onTap: () async {
-                    submitMake();
-                    //Navigator.of(context).pop();
+                    submitMake();  
                   },
                   child: Center(
                     child: Container(
@@ -143,7 +157,10 @@ Future<void> submitMake() async {
                         color: Color(0xFF0008B4),
                       ),
                       child: Center(
-                        child: Text("Save", style: getFonts(14, Colors.white)),
+                        child: Text(
+                          _selectedSiNo == null ? "Update" : "Save",
+                          style: getFonts(14, Colors.white),
+                        ),
                       ),
                     ),
                   ),
@@ -155,7 +172,6 @@ Future<void> submitMake() async {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,11 +186,11 @@ Future<void> submitMake() async {
           ),
         ),
         leading: Padding(
-        padding: const EdgeInsets.only(top: 20),
-        child: IconButton(onPressed: (){
-          Navigator.pop(context);
-        }, icon: Icon(Icons.arrow_back_ios_new_sharp,color: Colors.white,size: 15,)),
-      ),
+          padding: const EdgeInsets.only(top: 20),
+          child: IconButton(onPressed: () {
+            Navigator.pop(context);
+          }, icon: Icon(Icons.arrow_back_ios_new_sharp, color: Colors.white, size: 15)),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(top: 20),
@@ -198,22 +214,21 @@ Future<void> submitMake() async {
                 ),
                 IconButton(
                   onPressed: () {},
-                  icon: FaIcon(FontAwesomeIcons.user, color: Colors.white,size: 17,),
+                  icon: FaIcon(FontAwesomeIcons.user, color: Colors.white, size: 17),
                 ),
               ],
             ),
           ),
         ],
       ),
-     
       body: Column(
         children: [
           const SizedBox(height: 16),
           isLoading
               ? Center(child: CircularProgressIndicator())
-              :  Expanded(
+              : Expanded(
             child: FutureBuilder<List<dynamic>>(
-              future: make, 
+              future: make,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -222,14 +237,13 @@ Future<void> submitMake() async {
                 } else if (snapshot.hasData) {
                   vehicleList = snapshot.data!;
 
-                  return   Expanded(
-                  child: Padding(
+                  return Padding(
                     padding: const EdgeInsets.only(left: 16, right: 18),
                     child: ListView.separated(
                       separatorBuilder: (context, index) => const SizedBox(height: 15),
                       itemCount: vehicleList.length,
                       itemBuilder: (BuildContext context, int index) {
-                        int sn = index + 1; 
+                        int sn = index + 1;
                         return Container(
                           width: 358,
                           height: 59,
@@ -249,7 +263,7 @@ Future<void> submitMake() async {
                                       const SizedBox(width: 10),
                                       CircleAvatar(radius: 20, backgroundColor: Appcolors().maincolor),
                                       const SizedBox(width: 10),
-                                      Text(vehicleList[index]['VehicleName']??"", style: getFonts(16, Colors.black)),
+                                      Text(vehicleList[index]['VehicleName'] ?? "", style: getFonts(16, Colors.black)),
                                     ],
                                   ),
                                   PopupMenuButton<String>(
@@ -258,7 +272,7 @@ Future<void> submitMake() async {
                                       if (value == 'Edit') {
                                         adaPopup(vehicleName: vehicleList[index]['VehicleName'], siNo: vehicleList[index]['SiNo']);
                                       } else if (value == 'Delete') {
-                                        _deletevehicleMake(vehicleList[index]["siNo"]);
+                                        _deletevehicleMake(vehicleList[index]["SiNo"]);
                                       }
                                     },
                                     itemBuilder: (BuildContext context) => [
@@ -274,8 +288,7 @@ Future<void> submitMake() async {
                         );
                       },
                     ),
-                  ),
-                );
+                  );
                 } else {
                   return Center(child: Text("No data available"));
                 }
