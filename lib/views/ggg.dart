@@ -1566,3 +1566,21 @@ class _AutoCompleteWithFutureBuilderState
 //   }
 // }
   
+
+  //  void _filterSearchResults(String query) {
+//   setState(() {
+//     if (query.isEmpty) {
+//       reportlist = List.of(originalReportList);  
+//     } else {
+//       filter_reportlist = reportlist.where((jobreport) {
+//         if (filterCriteria == 'Name') {
+//           return jobreport['customername']?.toLowerCase().contains(query) ?? false;
+//         } else if (filterCriteria == 'Jobcard No') {
+//           return jobreport['jobcardno']?.toString().toLowerCase().contains(query) ?? false;
+//         }
+//         return false;
+//       }).toList();
+//       reportlist = filter_reportlist;
+//     }
+//   });
+// }
