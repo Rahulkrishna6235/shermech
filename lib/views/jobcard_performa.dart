@@ -47,6 +47,20 @@ List<String> jobcardNumbers = [];
     _amountcontroller.dispose();
     super.dispose();
   }
+void addBillDetail() {
+    setState(() {
+      billDetails.add({
+        'labourschedule': TextEditingController(),
+        'amount': TextEditingController(),
+      });
+    });
+  }
+  void removeBillDetail(int index) {
+    setState(() {
+      billDetails.removeAt(index);
+    });
+  }
+  
 
  Future<void> fetchJobcards() async {
   try {
@@ -94,18 +108,13 @@ Future<void> submitPerforma() async {
   }
 
 Future<void> submitPerformaPerticular() async {
-  if (_pformKey.currentState?.validate() ?? false) {
+  if (_formKey.currentState?.validate() ?? false) {
     String jobcardno = _jobcardnocontroller.text.trim();
     String labourschedule = _lobourschedulecontroller.text.trim();
     String amount = _amountcontroller.text.trim();
 
-    if (jobcardno.isEmpty || labourschedule.isEmpty || amount.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please fill in all fields')));
-      return;
-    }
-
     Map<String, dynamic> jobCardData = {
-      'jobcardno': jobcardno,
+      'Jobcardno': jobcardno,
       'labourschedule': labourschedule,
       'amount': amount,
     };
@@ -118,7 +127,7 @@ Future<void> submitPerformaPerticular() async {
 
         setState(() {
           billDetails.add({
-            'billName': labourschedule,
+            'labourschedule': labourschedule,
             'amount': amount,
           });
         });
@@ -455,123 +464,128 @@ Future<void> submitPerformaPerticular() async {
           )
         ],
       ),
-      child: Form(
-        key: _pformKey,
-        child: ListView.builder(
-          itemCount: billDetails.length + 1,
-          itemBuilder: (context, index) {
-            if (index == billDetails.length) {
-              // Adding a new row to enter data
-              return Container(
-                height: 50,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade400, width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(child: Center(child: Text("${index + 1}"))),
-                    SizedBox(width: 15),
-                    Expanded(
-                      flex: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: TextField(
-                          controller: _lobourschedulecontroller,
-                          decoration: InputDecoration(
-                            hintText: "Labour Schedule",
-                            hintStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w300),
-                            border: InputBorder.none,
-                            isDense: false,
+      child:  ListView.builder(
+              shrinkWrap: true,
+              itemCount: billDetails.length + 1,
+              itemBuilder: (context, index) {
+                if (index == billDetails.length) {
+                  // Adding a new row to enter data
+                  return Container(
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey.shade400, width: 1),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(child: Center(child: Text("${index + 1}"))),
+                        SizedBox(width: 15),
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: TextField(
+                              controller: _lobourschedulecontroller,
+                              decoration: InputDecoration(
+                                hintText: "Labour Schedule",
+                                hintStyle: TextStyle(
+                                    fontSize: 10, fontWeight: FontWeight.w300),
+                                border: InputBorder.none,
+                                isDense: false,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    SizedBox(width: 25),
-                    Expanded(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: TextField(
-                          controller: _amountcontroller,
-                          decoration: InputDecoration(
-                            hintText: "Amount",
-                            hintStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w300),
-                            border: InputBorder.none,
-                            isDense: false,
+                        SizedBox(width: 25),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: TextField(
+                              controller: _amountcontroller,
+                              decoration: InputDecoration(
+                                hintText: "Amount",
+                                hintStyle: TextStyle(
+                                    fontSize: 10, fontWeight: FontWeight.w300),
+                                border: InputBorder.none,
+                                isDense: false,
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
                           ),
-                          keyboardType: TextInputType.number,
                         ),
+                        SizedBox(width: 10),
+                        IconButton(
+                          onPressed: () {
+                            // Validate and add data to the list
+                            if (_lobourschedulecontroller.text.isNotEmpty &&
+                                _amountcontroller.text.isNotEmpty) {
+                              final amount = double.tryParse(
+                                  _amountcontroller.text);
+                              if (amount != null) {
+                                setState(() {
+                                  billDetails.add({
+                                    'labourschedule': _lobourschedulecontroller.text,
+                                    'amount': _amountcontroller.text,
+                                  });
+                                  _lobourschedulecontroller.clear();
+                                  _amountcontroller.clear();
+                                });
+                              } else {
+                                Fluttertoast.showToast(
+                                    msg: "Enter a valid amount!");
+                              }
+                            } else {
+                              Fluttertoast.showToast(msg: "Enter all fields!");
+                            }
+                          },
+                          icon: Icon(Icons.add_box_outlined,
+                              color: Colors.black, size: 20),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  return Container(
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                            color: Colors.grey.shade400, width: 1),
                       ),
                     ),
-                    SizedBox(width: 10),
-                    IconButton(
-                      onPressed: () {
-                        // Validate and add data to the list
-                        if (_lobourschedulecontroller.text.isNotEmpty &&
-                            _amountcontroller.text.isNotEmpty) {
-                          final amount = double.tryParse(_amountcontroller.text);
-                          if (amount != null) {
-                            setState(() {
-                              billDetails.add({
-                                'billName': _lobourschedulecontroller.text,
-                                'amount': _amountcontroller.text,
-                              });
-                              _lobourschedulecontroller.clear();
-                              _amountcontroller.clear();
-                            });
-                          } else {
-                            Fluttertoast.showToast(msg: "Enter a valid amount!");
-                          }
-                        } else {
-                          Fluttertoast.showToast(msg: "Enter all fields!");
-                        }
-                      },
-                      icon: Icon(Icons.add_box_outlined, color: Colors.black, size: 20),
+                    child: Row(
+                      children: [
+                        Expanded(child: Center(child: Text("${index + 1}"))),
+                        SizedBox(width: 15),
+                        Expanded(
+                          flex: 2,
+                          child: Text(billDetails[index]['labourschedule'] ?? ''),
+                        ),
+                        SizedBox(width: 15),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(billDetails[index]['amount'] ?? ''),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        IconButton(
+                          onPressed: () {
+                            removeBillDetail(index);
+                          },
+                          icon: Icon(Icons.delete, color: Colors.red, size: 20),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            } else {
-              return Container(
-                height: 50,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade400, width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(child: Center(child: Text("${index + 1}"))),
-                    SizedBox(width: 15),
-                    Expanded(flex: 2, child: Text(billDetails[index]['billName'] ?? '')),
-                    SizedBox(width: 15),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(billDetails[index]['amount'] ?? ''),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          billDetails.removeAt(index);
-                        });
-                      },
-                      icon: Icon(Icons.delete, color: Colors.red, size: 20),
-                    ),
-                  ],
-                ),
-              );
-            }
-          },
-        ),
-      ),
+                  );
+                }
+              },
+            ),
     ),
   ),
 ),
