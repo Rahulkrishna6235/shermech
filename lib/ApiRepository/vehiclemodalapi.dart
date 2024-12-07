@@ -66,11 +66,11 @@ class ApiVehicleModelRepository{
   
 
 Future<bool> updateVehicleModel(String id, String modaltitle, String modalsubtitle) async {
-  const String apiUrl = "http://192.168.0.128:3000/vehiclemodel/update";  // Base URL for the update API
+  const String apiUrl = "http://192.168.0.128:3000/vehiclemodel/update";  
 
   try {
     final response = await http.put(
-      Uri.parse('$apiUrl/$id'),  // Append the ID to the URL
+      Uri.parse('$apiUrl/$id'),  
       headers: {
         'Content-Type': 'application/json',
       },

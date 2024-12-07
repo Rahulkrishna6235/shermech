@@ -1,16 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sher_mech/ApiRepository/vehiclemakerepo.dart';
 import 'package:sher_mech/ApiRepository/vehiclemodalapi.dart';
 import 'package:sher_mech/utility/colorss.dart';
-import 'package:sher_mech/utility/databasedatails.dart';
 import 'package:sher_mech/utility/drawer.dart';
 import 'package:sher_mech/utility/font.dart';
-import 'package:sher_mech/views/easyautocom.dart';
-import 'package:sher_mech/views/vehiclemake.dart';
-import 'package:flutter_async_autocomplete/flutter_async_autocomplete.dart';
 import 'package:easy_autocomplete/easy_autocomplete.dart';
 
 
@@ -48,6 +43,7 @@ final ApiVehicleModelRepository _apiUpdateModel=ApiVehicleModelRepository();
     _searchController.addListener(_filterSearchResults);
     jobcards = ApiVehicleModelRepository().get_vehiclemodel();
     fetchJobcards();
+    _loadVehicleData();
     jobcards.then((data) {
       setState(() {
         vehicleList = List<Map<String, dynamic>>.from(data);
@@ -55,13 +51,11 @@ final ApiVehicleModelRepository _apiUpdateModel=ApiVehicleModelRepository();
       });
     });
   }
-  
-Future<void> submitModel() async {
+  Future<void> submitModel() async {
   if (_formKey.currentState?.validate() ?? false) {
     String title = _titleController.text.trim();
     String subtitle = _subtitleController.text.trim();
 
-    // Validation to ensure fields are not empty
     if (title.isEmpty || subtitle.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter all fields')));
       return;
@@ -79,18 +73,18 @@ Future<void> submitModel() async {
         if (success) {
           setState(() {
             filteredVehicleList.add({
-              'ID': filteredVehicleList.length + 1, // Generate a new ID (or get from the response if available)
+              'ID': filteredVehicleList.length + 1,  
               'modeletitle': title,
               'modalsubtitle': subtitle,
             });
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle added successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle model added successfully')));
           _titleController.clear();
           _subtitleController.clear();
           Navigator.pop(context);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add vehicle model')));
         }
       } else {
         bool success = await _apiUpdateModel.updateVehicleModel(
@@ -101,7 +95,6 @@ Future<void> submitModel() async {
 
         if (success) {
           setState(() {
-            // Update the existing entry in the list
             int index = filteredVehicleList.indexWhere((vehicle) => vehicle['ID'] == _selectedSiNo);
             if (index != -1) {
               filteredVehicleList[index]['modeletitle'] = title;
@@ -109,12 +102,12 @@ Future<void> submitModel() async {
             }
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle updated successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Vehicle model updated successfully')));
           _titleController.clear();
           _subtitleController.clear();
-          Navigator.pop(context); // Close the dialog
+          Navigator.pop(context);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update vehicle')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update vehicle model')));
         }
       }
     } catch (e) {
@@ -123,6 +116,55 @@ Future<void> submitModel() async {
   }
 }
 
+void _applyFilter() {
+  final searchText = _filterController.text.toLowerCase().trim();
+
+  setState(() {
+    if (searchText.isEmpty) {
+      // Reset to show all data if the filter input is empty
+      filteredVehicleList = List.from(vehicleList);
+    } else {
+      // Filter the list based on selected criteria
+      filteredVehicleList = vehicleList.where((vehicle) {
+        if (filterCriteria == 'Model') {
+          final modelTitle = vehicle['modeletitle']?.toString().toLowerCase() ?? '';
+          return modelTitle.contains(searchText);
+        } else if (filterCriteria == 'Make') {
+          final makeTitle = vehicle['modalsubtitle']?.toString().toLowerCase() ?? '';
+          return makeTitle.contains(searchText);
+        }
+        return false;
+      }).toList();
+    }
+  });
+}
+
+void _filterSearchResults() {
+  setState(() {
+    if (_searchController.text.isEmpty) {
+      filteredVehicleList = List.from(vehicleList);
+    } else {
+      filteredVehicleList = vehicleList.where((vehicle) {
+        final modelTitle = vehicle['modeletitle']?.toString().toLowerCase() ?? '';
+        final subtitle = vehicle['modalsubtitle']?.toString().toLowerCase() ?? '';
+        final searchText = _searchController.text.toLowerCase();
+
+        return modelTitle.contains(searchText) || subtitle.contains(searchText);
+      }).toList();
+    }
+  });
+}
+Future<void> _loadVehicleData() async {
+  try {
+    final data = await _apiModelRepository.get_vehiclemodel();
+    setState(() {
+      vehicleList = List<Map<String, dynamic>>.from(data);
+      filteredVehicleList = List.from(vehicleList); // Initialize filtered list
+    });
+  } catch (e) {
+    print("Error loading vehicle data: $e");
+  }
+}
 
 Future<void> fetchJobcards() async {
   try {
@@ -164,23 +206,6 @@ Future<void> _deletevehicleModel(int id) async {
 
   final TextEditingController _filterController = TextEditingController();
   
-
-  void _filterSearchResults() {
-    setState(() {
-      filteredVehicleList = vehicleList.where((report) {
-        bool matchesSearchQuery = true;
-        String query = _searchController.text.toLowerCase();
-        if (query.isNotEmpty) {
-          if (filterCriteria == 'Model') {
-            matchesSearchQuery = report['modeletitle']?.toLowerCase().contains(query) ?? false;
-          } else if (filterCriteria == 'Make') {
-            matchesSearchQuery = report['modalsubtitle']?.toString().toLowerCase().contains(query) ?? false;
-          }
-        }
-        return matchesSearchQuery;
-      }).toList();
-    });
-  }
 
 
 
@@ -303,7 +328,17 @@ Future<void> _deletevehicleModel(int id) async {
                 } else if (snapshot.hasError) {
                   return Center(child: Text("Error: ${snapshot.error}"));
                 } else if (snapshot.hasData) {
-                  filteredVehicleList = snapshot.data!;
+                  Future<void> _loadVehicleData() async {
+  try {
+    final data = await _apiModelRepository.get_vehiclemodel();
+    setState(() {
+      vehicleList = List<Map<String, dynamic>>.from(data);
+      filteredVehicleList = List.from(vehicleList); // Initialize filtered list
+    });
+  } catch (e) {
+    print("Error loading vehicle data: $e");
+  }
+}
 
                   return  ListView.separated(
                 itemCount: filteredVehicleList.length,
@@ -341,8 +376,8 @@ Future<void> _deletevehicleModel(int id) async {
                                 color: Appcolors().scafoldcolor,
                                 onSelected: (value) {
                                    if (value == 'Edit') {
-                                     adaPopup(title:vehiclemodalList[index]["modeletitle"],subtitle: vehiclemodalList[index]["modalsubtitle"],
-                                                 id:vehiclemodalList[index]["ID"] );  
+                                     adaPopup(title:filteredVehicleList[index]["modeletitle"],subtitle: filteredVehicleList[index]["modalsubtitle"],
+                                                 id:filteredVehicleList[index]["ID"] );  
                                         } else if (value == 'Delete') {
                                         _deletevehicleModel(filteredVehicleList[index]["ID"]);
                                         }
@@ -496,76 +531,81 @@ Future<void> _deletevehicleModel(int id) async {
     },
   );
 }
+
 void _showFilterBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Filter by:', style: TextStyle(fontWeight: FontWeight.bold)),
-              Row(
-                children: [
-                  Radio<String>(
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Filter by:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: Text('Model'),
                     value: 'Model',
                     groupValue: filterCriteria,
                     onChanged: (value) {
                       setState(() {
                         filterCriteria = value!;
+                        _filterController.clear(); // Clear the filter input
                       });
                     },
                   ),
-                  Text('Model'),
-                  Radio<String>(
+                ),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: Text('Make'),
                     value: 'Make',
                     groupValue: filterCriteria,
                     onChanged: (value) {
                       setState(() {
                         filterCriteria = value!;
+                        _filterController.clear(); // Clear the filter input
                       });
                     },
                   ),
-                  Text('Make'),
-                ],
+                ),
+              ],
+            ),
+            TextField(
+              controller: _filterController,
+              decoration: InputDecoration(
+                hintText: 'Enter ${filterCriteria == 'Model' ? 'model' : 'make'}...',
+                border: OutlineInputBorder(),
               ),
-              TextField(
-                controller: _filterController,
-                decoration: InputDecoration(
-                  hintText: 'Enter ${filterCriteria == 'Name' ? 'Model' : 'make'}...',
-                  border: OutlineInputBorder(),
+            ),
+            SizedBox(height: 10),
+            Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context); // Close the BottomSheet
+                  _applyFilter();
+                },
+                child: Container(
+                  width: 100,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Appcolors().maincolor,
+                  ),
+                  child: Center(
+                    child: Text("Apply", style: getFonts(14, Colors.white)),
+                  ),
                 ),
               ),
-              SizedBox(height: 10),
-              Center(
-               child: GestureDetector(
-                onTap: () {
-                   _filterSearchResults();
-                    Navigator.pop(context);
-                },
-                 child: Container(
-                    width: 100,height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Appcolors().maincolor
-                    ),
-                    child: Center(child: Text("Apply",style: getFonts(14, Colors.white),)),
-                 ),
-               )
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
-  @override
-  void dispose(){
-    super.dispose();
-    _subtitleController.clear();
-    _subtitleController.dispose();
-  }
+
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sher_mech/sample.dart';
 import 'package:sher_mech/views/Dashboard.dart';
 import 'package:sher_mech/views/Home/mainHome.dart';
 import 'package:sher_mech/views/splash.dart';

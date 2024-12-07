@@ -20,8 +20,9 @@ import 'package:path_provider/path_provider.dart';
 // import 'package:pdf/widgets.dart' as pw;
 // import 'package:printing/printing.dart';
 class Newjobcard extends StatefulWidget {
-  final int? jobCardId; // Add this to pass job card ID
-  const Newjobcard({Key? key, this.jobCardId}) : super(key: key);
+  final String? jobCardId;
+  final bool isEditMode; 
+  const Newjobcard({Key? key, this.jobCardId,this.isEditMode=false}) : super(key: key);
 
   @override
   State<Newjobcard> createState() => _NewjobcardState();
@@ -50,40 +51,52 @@ class _NewjobcardState extends State<Newjobcard> {
  final TextEditingController _kilometerController = TextEditingController();
   final TextEditingController _jobadvisorController = TextEditingController();
 
-
+late Future<Map<String, dynamic>> jobCardData;
   final _formKey = GlobalKey<FormState>();
   int? _selectedSiNo; 
 bool isEditing = false;
   @override
   void initState() {
     super.initState();
-   
+   if (widget.isEditMode && widget.jobCardId != null) {
+      jobCardData = _fetchJobCardData(widget.jobCardId!);
+    }
   }
 final ApiJobcardRepository _apiJobcardRepository = ApiJobcardRepository();
 
 Future<void> submitJobCard() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      Map<String, dynamic> jobCardData = {
-        'jobcardno': _jobcardnoController.text,
-        'arivedate': _ariveDateController.text,
-        'customername': _customernameController.text,
-        'location': _locationController.text,
-        'mobilenumber': _mobileController.text,
-        'make': _makeController.text,
-        'model': _modelController.text,
-        'registerno': _registernoController.text,
-        'chassisno': _chassisnoController.text,
-        'kilometer': _kilometerController.text,
-        'selectjobadvisor': _jobadvisorController.text,
-        'technicianvoke': _technicianvoiceController.text,
-        'deliverdate': _deliverDateController.text,
-        'adress': _adressnoController.text,
-        'technicians': _technicionController.text,
-        'customervoice': _customervoiceController.text,
+  if (_formKey.currentState?.validate() ?? false) {
+    // Prepare the job card data
+    Map<String, dynamic> jobCardData = {
+      'jobcardno': _jobcardnoController.text,
+      'arivedate': _ariveDateController.text,
+      'customername': _customernameController.text,
+      'location': _locationController.text,
+      'mobilenumber': _mobileController.text,
+      'make': _makeController.text,
+      'model': _modelController.text,
+      'registerno': _registernoController.text,
+      'chassisno': _chassisnoController.text,
+      'kilometer': _kilometerController.text,
+      'selectjobadvisor': _jobadvisorController.text,
+      'technicianvoke': _technicianvoiceController.text,
+      'deliverdate': _deliverDateController.text,
+      'adress': _adressnoController.text,
+      'Technicians': _technicionController.text,
+      'customervoice': _customervoiceController.text,
+    };
 
-      };
+    try {
+      if (widget.isEditMode) { 
+        bool success = await _apiJobcardRepository.updateJobCard(_jobcardnoController.text, jobCardData);
 
-      try {
+        if (success) {
+          jobCardData.clear();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Job card updated successfully')));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update job card')));
+        }
+      } else {
         bool success = await _apiJobcardRepository.postNewJobCard(jobCardData);
 
         if (success) {
@@ -91,11 +104,55 @@ Future<void> submitJobCard() async {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add job card')));
         }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
+}
+
+  
+ Future<Map<String, dynamic>> _fetchJobCardData(String jobCardId) async {
+  setState(() {
+    isLoading = true;
+  });
+  try {
+    final jobCardData = await _apiJobcardRepository.getJobCardById(jobCardId); 
+    print("Job Card Data: $jobCardData");
+    _jobcardnoController.text = jobCardData['jobcardno'] ?? '';
+    _customernameController.text = jobCardData['customername'] ?? '';
+    _locationController.text = jobCardData['location'] ?? '';
+    _mobileController.text = jobCardData['mobilenumber'] ?? '';
+    _makeController.text = jobCardData['make'] ?? '';
+    _modelController.text = jobCardData['model'] ?? '';
+    _registernoController.text = jobCardData['registerno'] ?? '';
+    _chassisnoController.text = jobCardData['chassisno'] ?? '';
+    _kilometerController.text = jobCardData['kilometer']?.toString() ?? ''; // Ensure it's a string
+    _jobadvisorController.text = jobCardData['selectjobadvisor'] ?? '';
+    _technicianvoiceController.text = jobCardData['technicianvoke'] ?? '';
+    _ariveDateController.text = jobCardData['arivedate'] ?? '';
+    _deliverDateController.text = jobCardData['deliverdate'] ?? '';
+    _adressnoController.text = jobCardData['adress'] ?? '';
+    _technicionController.text = jobCardData['Technicians'] ;
+    print('Technicians: ${_technicionController.text}');
+    _customervoiceController.text = jobCardData['customervoice'] ?? '';
+
+    print('Kilometer: ${_kilometerController.text}');
+    print('Job Advisor: ${_jobadvisorController.text}');
+    print('Technician Voice: ${_technicianvoiceController.text}');
+    print('Arrival Date: ${_ariveDateController.text}');
+    print('Deliver Date: ${_deliverDateController.text}');
+
+    return jobCardData;
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching job card data: $e')));
+    return {};
+  } finally {
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
 
   Future<File> generateInvoice(List<Map<String, dynamic>> jobcardList) async {
   final pdf = pw.Document();
@@ -643,7 +700,7 @@ Future<void> _generateinvoice() async {
                       borderRadius: BorderRadius.circular(5),
                        color: Color(0xFF0A1EBE), 
                     ),
-                    child: Center(child: Text(isEditing ? "Update JobCard" : "Create JobCard",style: getFonts(12, Colors.white)),
+                    child: Center(child: Text(widget.isEditMode ? "Update JobCard" : "Create JobCard",style: getFonts(12, Colors.white)),
                    ) ),
                 ),
                 //_Botton("Create JobCard"),

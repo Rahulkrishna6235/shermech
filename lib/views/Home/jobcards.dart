@@ -284,7 +284,15 @@ class _JobcardsState extends State<Jobcards> {
                                       color: Colors.white,
                                       onSelected: (value) {
                                         if (value == 'Edit') {
-                                          // Edit action
+                                          Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => Newjobcard(
+      jobCardId:filteredJobcardList[index]['jobcardno'].toString() ,  // Pass the job card ID here
+      isEditMode: true,  // Indicate this is for editing
+    ),
+  ),
+);
                                         } else if (value == 'Delete') {
                                           _deleteJobcard(filteredJobcardList[index]['id']);
                                         }
